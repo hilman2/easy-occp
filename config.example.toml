@@ -1,0 +1,31 @@
+# easy-occp – Beispielkonfiguration
+# Speichere diese Datei als config.toml und passe sie an.
+
+[http]
+bind = "0.0.0.0:8080"
+public_base_url = "http://localhost:8080"
+
+[storage]
+data_dir = "data"
+db_file  = "easy-occp.db"
+
+[ocpp]
+# Intervall in Sekunden, in dem Wallboxen während einer Ladung Zählerstand und
+# Leistung melden (MeterValues). Wird beim Verbinden automatisch in der Wallbox
+# gesetzt (ChangeConfiguration). 0 = Auto-Konfiguration deaktivieren.
+meter_interval_s = 30
+
+# Optional: Active Directory (LDAP) – noch nicht aktiv, Feld-Stub.
+# [auth.ldap]
+# url = "ldap://dc.firma.local:389"
+# bind_dn = "CN=svc-easy-occp,OU=Service,DC=firma,DC=local"
+# bind_password = "geheim"
+# user_base_dn = "OU=Mitarbeiter,DC=firma,DC=local"
+# user_filter = "(sAMAccountName={user})"
+
+# Optional: Entra / OIDC – noch nicht aktiv, Feld-Stub.
+# [auth.oidc]
+# issuer = "https://login.microsoftonline.com/<tenant>/v2.0"
+# client_id = "..."
+# client_secret = "..."
+# redirect_uri = "http://localhost:8080/oidc/callback"

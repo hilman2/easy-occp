@@ -1,0 +1,67 @@
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build:
+    name: Build (${{ matrix.suffix }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            suffix: windows-x64
+          - os: ubuntu-latest
+            suffix: linux-x64
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - name: Build (Release)
+        run: cargo build --release --locked
+
+      - name: Paketieren (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory dist\easy-occp | Out-Null
+          Copy-Item target\release\easy-occp.exe, README.md, ANLEITUNG.md, config.example.toml, LICENSE dist\easy-occp\
+          Compress-Archive -Path dist\easy-occp -DestinationPath "dist\easy-occp-${{ github.ref_name }}-${{ matrix.suffix }}.zip"
+
+      - name: Paketieren (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          mkdir -p dist/easy-occp
+          cp target/release/easy-occp README.md ANLEITUNG.md config.example.toml LICENSE dist/easy-occp/
+          tar -C dist -czf "dist/easy-occp-${{ github.ref_name }}-${{ matrix.suffix }}.tar.gz" easy-occp
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: easy-occp-${{ matrix.suffix }}
+          path: |
+            dist/*.zip
+            dist/*.tar.gz
+          if-no-files-found: error
+
+  release:
+    name: GitHub Release
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: dist/*
+          generate_release_notes: true

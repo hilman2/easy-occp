@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block title %}Transaktionen{% endblock %}
+{% block content %}
+<h1>Transaktionen</h1>
+
+<p><a class="linkbtn" href="/transactions.csv{% if let Some(u) = filter_employee %}?employee={{ u }}{% endif %}">⇩ CSV-Export</a></p>
+
+{% if let Some(u) = layout.user %}
+    {% if u.is_admin() %}
+    <form method="get" action="/transactions" class="row">
+        <label>Filter Mitarbeiter
+            <input name="employee" value="{{ filter_employee.as_deref().unwrap_or("") }}">
+        </label>
+        <button>Suchen</button>
+    </form>
+    {% endif %}
+{% endif %}
+
+<table class="data">
+    <thead><tr><th>ID</th><th>Wallbox</th><th>C.</th><th>idTag</th><th>Mitarbeiter</th><th>Start</th><th>Ende</th><th>Energie</th></tr></thead>
+    <tbody>
+    {% for r in rows %}
+        <tr>
+            <td>{{ r.id }}</td>
+            <td>{{ r.wallbox_name }}</td>
+            <td>{{ r.connector_id }}</td>
+            <td><code>{{ r.id_tag }}</code></td>
+            <td>{{ r.employee_name.as_deref().unwrap_or("—") }}</td>
+            <td>{{ r.start_time }}</td>
+            <td>{{ r.stop_time.as_deref().unwrap_or("läuft") }}</td>
+            <td>{% if let Some(e) = r.energy_kwh %}{{ e }} kWh{% else %}—{% endif %}{% if let Some(p) = r.power_kw %} <small class="muted">· {{ p }} kW</small>{% endif %}</td>
+        </tr>
+    {% endfor %}
+    {% if rows.is_empty() %}<tr><td colspan="8" class="empty">Keine Transaktionen gefunden.</td></tr>{% endif %}
+    </tbody>
+</table>
+{% endblock %}

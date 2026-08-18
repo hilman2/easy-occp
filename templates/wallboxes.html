@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}Wallboxen{% endblock %}
+{% block content %}
+<h1>Wallboxen</h1>
+<details class="card">
+    <summary>Neue Wallbox anlegen</summary>
+    <form method="post" action="/wallboxes/new" class="row">
+        <label>ChargePointId <input name="charge_point_id" required></label>
+        <label>Name <input name="name" required></label>
+        <label>Standort <input name="location"></label>
+        <button class="primary" type="submit">Anlegen</button>
+    </form>
+    <p class="hint">Die Wallbox verbindet sich anschließend nach <code>ws://…/ocpp/&lt;ChargePointId&gt;</code>.</p>
+</details>
+
+<table class="data">
+    <thead>
+        <tr><th>Name</th><th>ChargePointId</th><th>Standort</th><th>OCPP</th><th>Online</th><th>Letzter Heartbeat</th><th></th></tr>
+    </thead>
+    <tbody>
+    {% for row in wallboxes %}
+        <tr>
+            <td><a href="/wallboxes/{{ row.wb.id }}">{{ row.wb.name }}</a></td>
+            <td><code>{{ row.wb.charge_point_id }}</code></td>
+            <td>{{ row.wb.location.as_deref().unwrap_or("") }}</td>
+            <td>{{ row.wb.ocpp_version.as_deref().unwrap_or("—") }}</td>
+            <td>{% if row.online %}<span class="ok">●</span> online{% else %}<span class="off">●</span> offline{% endif %}</td>
+            <td>{{ row.wb.last_heartbeat.as_deref().unwrap_or("—") }}</td>
+            <td>
+                <form method="post" action="/wallboxes/{{ row.wb.id }}/delete" onsubmit="return confirm('Wallbox löschen?')">
+                    <button class="linkbtn danger">Löschen</button>
+                </form>
+            </td>
+        </tr>
+    {% endfor %}
+    {% if wallboxes.is_empty() %}
+        <tr><td colspan="7" class="empty">Noch keine Wallboxen angelegt.</td></tr>
+    {% endif %}
+    </tbody>
+</table>
+{% endblock %}

@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+{% block title %}Chips{% endblock %}
+{% block crumb %}Chips{% endblock %}
+{% block content %}
+<div class="page-title-row">
+    <div>
+        <h1>Chips &amp; RFID-Karten</h1>
+        <div class="sub">Ladechips werden über das Lernfenster einer Wallbox erfasst und hier Mitarbeitern zugeordnet.</div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-head"><h2>Neuen Chip anlernen</h2></div>
+    {% match active_enrollment %}
+    {% when Some with (sess) %}
+        <p>Lernfenster läuft bis <b>{{ sess.expires_at }}</b>. Chip jetzt an eine Wallbox halten.</p>
+        <a class="linkbtn" href="/chips/enroll/{{ sess.id }}">→ Zum Lernfenster</a>
+    {% when None %}
+        <form method="post" action="/chips/enroll" class="row">
+            <label>Auf Wallbox beschränken (optional)
+                <select name="wallbox_id">
+                    <option value="">— egal —</option>
+                    {% for (id, name) in wallboxes %}
+                        <option value="{{ id }}">{{ name }}</option>
+                    {% endfor %}
+                </select>
+            </label>
+            <button class="primary">Lernfenster starten (2 min)</button>
+        </form>
+    {% endmatch %}
+</div>
+
+<h2>Alle Chips</h2>
+{% if chips.is_empty() %}
+    <div class="empty-state">
+        <div class="title">Noch keine Chips registriert</div>
+        <div>Starte das Lernfenster oben und halte den Chip an eine Wallbox.</div>
+    </div>
+{% else %}
+<table class="data">
+    <thead>
+        <tr>
+            <th>idTag</th>
+            <th>Label</th>
+            <th>Mitarbeiter</th>
+            <th>Kategorie</th>
+            <th>Aktiv</th>
+            <th>Ablauf</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+    {% for row in chips %}
+        {% let fid = format!("chip-{}", row.chip.id) %}
+        <tr>
+            <td><code>{{ row.chip.id_tag }}</code></td>
+            <td>
+                <input form="{{ fid }}" name="label" value="{{ row.chip.label.as_deref().unwrap_or("") }}" placeholder="—" style="min-width:140px;">
+            </td>
+            <td>
+                <select form="{{ fid }}" name="employee_id">
+                    <option value="">— unzugeordnet —</option>
+                    {% for e in employees %}
+                        <option value="{{ e.id }}" {% if row.is_assigned_to(e.id) %}selected{% endif %}>{{ e.name }}</option>
+                    {% endfor %}
+                </select>
+            </td>
+            <td>
+                <select form="{{ fid }}" name="kind">
+                    <option value="employee" {% if row.chip.kind == "employee" %}selected{% endif %}>Mitarbeiter</option>
+                    <option value="guest"    {% if row.chip.kind == "guest" %}selected{% endif %}>Gast</option>
+                </select>
+            </td>
+            <td>
+                <select form="{{ fid }}" name="enabled">
+                    <option value="1" {% if row.chip.enabled != 0 %}selected{% endif %}>ja</option>
+                    <option value="0" {% if row.chip.enabled == 0 %}selected{% endif %}>nein</option>
+                </select>
+            </td>
+            <td>
+                <input form="{{ fid }}" name="expires_at" value="{{ row.chip.expires_at.as_deref().unwrap_or("") }}" placeholder="YYYY-MM-DD" style="min-width:130px;">
+            </td>
+            <td class="nowrap">
+                <form id="{{ fid }}" method="post" action="/chips/{{ row.chip.id }}/update" style="display:inline;">
+                    <button class="primary sm" type="submit">Speichern</button>
+                </form>
+                <form method="post" action="/chips/{{ row.chip.id }}/delete" style="display:inline;" onsubmit="return confirm('Chip löschen?')">
+                    <button class="linkbtn danger sm" type="submit">Löschen</button>
+                </form>
+            </td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+<p class="hint">Änderungen pro Zeile mit „Speichern" übernehmen.</p>
+{% endif %}
+{% endblock %}

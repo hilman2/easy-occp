@@ -1,0 +1,18 @@
+{% extends "auth.html" %}
+{% block title %}Anmelden – easy-occp{% endblock %}
+{% block content %}
+<div class="login-card">
+    <h1>Anmelden</h1>
+    {% if let Some(e) = error %}<div class="err">{{ e }}</div>{% endif %}
+    <form method="post" action="/login">
+        <label>Benutzername
+            <input name="username" autocomplete="username" autofocus required>
+        </label>
+        <label>Passwort
+            <input type="password" name="password" autocomplete="current-password" required>
+        </label>
+        <button type="submit" class="primary">Anmelden</button>
+    </form>
+    <p class="hint">Standard-Zugang beim ersten Start: <code>admin</code> / <code>admin</code></p>
+</div>
+{% endblock %}

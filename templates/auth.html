@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="de">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}easy-occp{% endblock %}</title>
+    <link rel="stylesheet" href="/static/app.css">
+</head>
+<body>
+<div class="standalone">
+    <div>
+        <div class="brand">
+            <strong>easy-occp</strong>
+            <span class="tag">Wallbox-Management</span>
+        </div>
+        {% if let Some(msg) = layout.flash %}<div class="flash">{{ msg }}</div>{% endif %}
+        {% block content %}{% endblock %}
+    </div>
+</div>
+</body>
+</html>

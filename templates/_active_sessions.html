@@ -1,0 +1,26 @@
+{% if active_sessions.is_empty() %}
+    <p class="hint">Aktuell lädt niemand.</p>
+{% else %}
+<table class="data">
+    <thead><tr><th>Wallbox</th><th>Mitarbeiter</th><th>Seit</th><th>Geladen</th><th>Leistung</th><th></th></tr></thead>
+    <tbody>
+    {% for s in active_sessions %}
+        <tr>
+            <td><a href="/wallboxes/{{ s.wallbox_id }}">{{ s.wallbox_name }}</a> <small class="mono">·{{ s.connector_id }}</small></td>
+            <td>{{ s.employee_name.as_deref().unwrap_or("—") }}<br><small class="mono">{{ s.id_tag }}</small></td>
+            <td>{{ s.start_time }}</td>
+            <td>{% if let Some(e) = s.energy_kwh %}{{ e }} kWh{% else %}—{% endif %}{% if let Some(soc) = s.soc_percent %}<br><small class="muted">SoC {{ soc }} %</small>{% endif %}</td>
+            <td>{% if let Some(p) = s.power_kw %}{{ p }} kW{% else %}—{% endif %}</td>
+            <td>
+                {% if can_stop %}
+                <form method="post" action="/wallboxes/{{ s.wallbox_id }}/remote-stop">
+                    <input type="hidden" name="transaction_id" value="{{ s.tx_id }}">
+                    <button class="linkbtn danger sm">Stopp</button>
+                </form>
+                {% endif %}
+            </td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+{% endif %}

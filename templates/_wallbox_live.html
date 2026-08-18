@@ -1,0 +1,22 @@
+<table class="data">
+    <thead><tr><th>Tx-ID</th><th>Conn.</th><th>idTag</th><th>Start</th><th>Geladen</th><th>Leistung</th><th></th></tr></thead>
+    <tbody>
+    {% for t in active_tx %}
+        <tr>
+            <td>{{ t.id }}</td>
+            <td>{{ t.connector_id }}</td>
+            <td><code>{{ t.id_tag }}</code></td>
+            <td>{{ t.start_time }}</td>
+            <td>{% if let Some(e) = t.energy_kwh %}{{ e }} kWh{% else %}—{% endif %}{% if let Some(soc) = t.soc_percent %} <small class="muted">· SoC {{ soc }} %</small>{% endif %}</td>
+            <td>{% if let Some(p) = t.power_kw %}{{ p }} kW{% else %}—{% endif %}</td>
+            <td>
+                <form method="post" action="/wallboxes/{{ wb.id }}/remote-stop">
+                    <input type="hidden" name="transaction_id" value="{{ t.id }}">
+                    <button class="linkbtn danger" {% if !online %}disabled{% endif %}>Stop</button>
+                </form>
+            </td>
+        </tr>
+    {% endfor %}
+    {% if active_tx.is_empty() %}<tr><td colspan="7" class="empty">Keine aktive Ladung.</td></tr>{% endif %}
+    </tbody>
+</table>

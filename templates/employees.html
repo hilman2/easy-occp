@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block title %}Mitarbeiter{% endblock %}
+{% block content %}
+<h1>Mitarbeiter</h1>
+
+<details class="card">
+    <summary>Neuen Mitarbeiter anlegen</summary>
+    <form method="post" action="/employees/new" class="row">
+        <label>Name <input name="display_name" required></label>
+        <label>E-Mail <input name="email" type="email"></label>
+        <label>Abteilung <input name="department"></label>
+        <button class="primary" type="submit">Anlegen</button>
+    </form>
+</details>
+
+<table class="data">
+    <thead>
+        <tr><th>Name</th><th>E-Mail</th><th>Abteilung</th><th>Chips</th><th>Ladungen</th><th>Energie (kWh)</th><th>Aktiv</th></tr>
+    </thead>
+    <tbody>
+    {% for row in employees %}
+        <tr>
+            <td><a href="/employees/{{ row.emp.id }}">{{ row.emp.display_name }}</a></td>
+            <td>{{ row.emp.email.as_deref().unwrap_or("") }}</td>
+            <td>{{ row.emp.department.as_deref().unwrap_or("") }}</td>
+            <td>{{ row.chip_count }}</td>
+            <td>{{ row.tx_count }}</td>
+            <td>{{ row.total_wh / 1000 }}</td>
+            <td>{% if row.emp.active != 0 %}ja{% else %}<span class="off">nein</span>{% endif %}</td>
+        </tr>
+    {% endfor %}
+    {% if employees.is_empty() %}
+        <tr><td colspan="7" class="empty">Noch keine Mitarbeiter angelegt.</td></tr>
+    {% endif %}
+    </tbody>
+</table>
+{% endblock %}

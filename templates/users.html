@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block title %}Benutzer{% endblock %}
+{% block content %}
+<h1>Benutzer</h1>
+<details class="card">
+    <summary>Neuen Benutzer anlegen</summary>
+    <form method="post" action="/users/new" class="row">
+        <label>Benutzername <input name="username" required></label>
+        <label>Name <input name="display_name" required></label>
+        <label>E-Mail <input name="email" type="email"></label>
+        <label>Rolle
+            <select name="role">
+                <option value="user">Benutzer</option>
+                <option value="admin">Administrator</option>
+            </select>
+        </label>
+        <label>Passwort <input name="password" type="password" minlength="6" required></label>
+        <button class="primary">Anlegen</button>
+    </form>
+</details>
+
+<table class="data">
+    <thead><tr><th>Benutzername</th><th>Name</th><th>E-Mail</th><th>Rolle</th><th>Quelle</th><th>Aktiv</th><th>Passwort</th><th></th></tr></thead>
+    <tbody>
+    {% for u in users %}
+        <tr>
+            <td><code>{{ u.username }}</code></td>
+            <td>{{ u.display_name }}</td>
+            <td>{{ u.email.as_deref().unwrap_or("") }}</td>
+            <td>{{ u.role }}</td>
+            <td>{{ u.auth_source }}</td>
+            <td>{% if u.disabled == 0 %}ja{% else %}nein{% endif %}</td>
+            <td>
+                {% if u.auth_source == "local" %}
+                <form method="post" action="/users/{{ u.id }}/password" class="inline">
+                    <input type="password" name="password" placeholder="neues Passwort" minlength="6">
+                    <button class="linkbtn">Setzen</button>
+                </form>
+                {% else %}–{% endif %}
+            </td>
+            <td>
+                <form method="post" action="/users/{{ u.id }}/delete" onsubmit="return confirm('Benutzer löschen?')">
+                    <button class="linkbtn danger">Löschen</button>
+                </form>
+            </td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

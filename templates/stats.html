@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+{% block title %}Statistik{% endblock %}
+{% block content %}
+<h1>Statistik</h1>
+
+<h2>Monatsbericht (PDF)</h2>
+<form method="get" action="/reports/monthly.pdf" class="row card">
+    <label>Jahr <input name="year" type="number" min="2020" max="2099" value="2026" required></label>
+    <label>Monat
+        <select name="month">
+            <option value="1">Januar</option>
+            <option value="2">Februar</option>
+            <option value="3">März</option>
+            <option value="4">April</option>
+            <option value="5">Mai</option>
+            <option value="6">Juni</option>
+            <option value="7">Juli</option>
+            <option value="8">August</option>
+            <option value="9">September</option>
+            <option value="10">Oktober</option>
+            <option value="11">November</option>
+            <option value="12">Dezember</option>
+        </select>
+    </label>
+    <button class="primary" type="submit">⇩ Bericht erstellen</button>
+</form>
+<p class="hint">Eine Seite pro Mitarbeiter mit ≥1 abgeschlossener Ladung im gewählten Monat.</p>
+
+<h2>Verlauf</h2>
+<div class="tabs">
+    <a href="/stats?g=month&r={{ range }}" class="{% if granularity == "month" %}active{% endif %}">Monat</a>
+    <a href="/stats?g=quarter&r={{ range }}" class="{% if granularity == "quarter" %}active{% endif %}">Quartal</a>
+    <a href="/stats?g=year&r={{ range }}" class="{% if granularity == "year" %}active{% endif %}">Jahr</a>
+</div>
+
+<table class="data">
+    <thead><tr><th>Periode</th><th>Ladungen</th><th>Energie (kWh)</th></tr></thead>
+    <tbody>
+    {% for r in rows %}
+        <tr>
+            <td>{{ r.bucket }}</td>
+            <td>{{ r.sessions }}</td>
+            <td>{{ r.energy_wh / 1000 }}</td>
+        </tr>
+    {% endfor %}
+    {% if rows.is_empty() %}<tr><td colspan="3" class="empty">Keine abgeschlossenen Ladungen im Zeitraum.</td></tr>{% endif %}
+    </tbody>
+</table>
+
+<h2>Rollups</h2>
+<div class="tabs">
+    <a href="/stats?g={{ granularity }}&r=30d"  class="{% if range == "30d"  %}active{% endif %}">30 Tage</a>
+    <a href="/stats?g={{ granularity }}&r=90d"  class="{% if range == "90d"  %}active{% endif %}">90 Tage</a>
+    <a href="/stats?g={{ granularity }}&r=365d" class="{% if range == "365d" %}active{% endif %}">365 Tage</a>
+    <a href="/stats?g={{ granularity }}&r=all"  class="{% if range == "all"  %}active{% endif %}">Gesamt</a>
+</div>
+
+<h3>Mitarbeiter vs. Gäste</h3>
+<table class="data">
+    <thead><tr><th>Gruppe</th><th>Ladungen</th><th>Energie (kWh)</th></tr></thead>
+    <tbody>
+        <tr><td>Mitarbeiter</td><td>{{ split.employee_sessions }}</td><td>{{ split.employee_wh / 1000 }}</td></tr>
+        <tr><td>Gäste</td><td>{{ split.guest_sessions }}</td><td>{{ split.guest_wh / 1000 }}</td></tr>
+    </tbody>
+</table>
+
+<h3>Nach Mitarbeiter / Gast-Label</h3>
+<table class="data">
+    <thead><tr><th>Mitarbeiter</th><th>Ladungen</th><th>Energie (kWh)</th></tr></thead>
+    <tbody>
+    {% for u in per_employee %}
+        <tr><td>{{ u.label }}</td><td>{{ u.sessions }}</td><td>{{ u.energy_wh / 1000 }}</td></tr>
+    {% endfor %}
+    {% if per_employee.is_empty() %}<tr><td colspan="3" class="empty">Keine Daten.</td></tr>{% endif %}
+    </tbody>
+</table>
+
+<h3>Nach Wallbox</h3>
+<table class="data">
+    <thead><tr><th>Wallbox</th><th>Ladungen</th><th>Energie (kWh)</th></tr></thead>
+    <tbody>
+    {% for w in per_wallbox %}
+        <tr><td>{{ w.label }}</td><td>{{ w.sessions }}</td><td>{{ w.energy_wh / 1000 }}</td></tr>
+    {% endfor %}
+    {% if per_wallbox.is_empty() %}<tr><td colspan="3" class="empty">Keine Daten.</td></tr>{% endif %}
+    </tbody>
+</table>
+{% endblock %}

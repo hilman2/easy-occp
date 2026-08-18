@@ -1,0 +1,114 @@
+{% extends "base.html" %}
+{% block title %}Cockpit – easy-occp{% endblock %}
+{% block crumb %}Cockpit{% endblock %}
+{% block content %}
+
+<div class="page-title-row">
+    <div>
+        <h1>Cockpit</h1>
+        <div class="sub">Live-Überblick über alle Wallboxen.</div>
+    </div>
+    <div class="actions">
+        <a href="/wallboxes" class="linkbtn">Wallbox hinzufügen →</a>
+        <a href="/stats" class="linkbtn">Monatsbericht →</a>
+    </div>
+</div>
+
+<div class="grid kpis">
+    <div class="kpi accent">
+        <div class="label">Jetzt online</div>
+        <div class="num">{{ wallboxes_online }}<span class="unit">/ {{ wallboxes_total }}</span></div>
+        <div class="foot">Wallboxen verbunden</div>
+    </div>
+    <div class="kpi">
+        <div class="label">Läuft gerade</div>
+        <div class="num">{{ active_tx_count }}</div>
+        <div class="foot">aktive Ladungen</div>
+    </div>
+    <div class="kpi">
+        <div class="label">Ladungen diesen Monat</div>
+        <div class="num">{{ sessions_month }}</div>
+        <div class="foot">abgeschlossen</div>
+    </div>
+    <div class="kpi">
+        <div class="label">Energie diesen Monat</div>
+        <div class="num">{{ energy_month_kwh }}<span class="unit">kWh</span></div>
+        <div class="foot">summiert über alle Wallboxen</div>
+    </div>
+</div>
+
+<h2>Wallboxen</h2>
+{% if cards.is_empty() %}
+    <div class="empty-state">
+        <div class="title">Noch keine Wallbox registriert</div>
+        <div>Lege unter <a href="/wallboxes">Wallboxen</a> die erste Ladestation an.</div>
+    </div>
+{% else %}
+<div class="grid wallboxes">
+    {% for c in cards %}
+    <div class="entity">
+        <div class="head">
+            <div>
+                <div class="title"><a href="/wallboxes/{{ c.id }}">{{ c.name }}</a></div>
+                <div class="sub"><code>{{ c.charge_point_id }}</code></div>
+            </div>
+            {% let s = c.state() %}
+            {% if s == "charging" %}<span class="badge charge"><span class="dot"></span>{{ c.state_label() }}</span>
+            {% else if s == "ready" %}<span class="badge ok"><span class="dot"></span>{{ c.state_label() }}</span>
+            {% else if s == "error" %}<span class="badge danger"><span class="dot"></span>{{ c.state_label() }}</span>
+            {% else if s == "warn" %}<span class="badge warn"><span class="dot"></span>{{ c.state_label() }}</span>
+            {% else %}<span class="badge off"><span class="dot"></span>{{ c.state_label() }}</span>
+            {% endif %}
+        </div>
+        <div class="meta">
+            {% if let Some(loc) = c.location %}<span>📍 {{ loc }}</span>{% endif %}
+            <span>OCPP {{ c.ocpp_version.as_deref().unwrap_or("—") }}</span>
+            {% if c.auth_locked %}<span title="Basic-Auth aktiv">🔒 gesichert</span>{% endif %}
+        </div>
+        {% if c.active_tx > 0 %}
+        <div class="foot">
+            <span class="muted">{{ c.active_tx }} aktive Ladung{% if c.active_tx != 1 %}en{% endif %}</span>
+            <a class="linkbtn" href="/wallboxes/{{ c.id }}">Details →</a>
+        </div>
+        {% endif %}
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+<div class="grid cols-2" style="margin-top: 1.5rem;">
+    <div class="card">
+        <div class="card-head">
+            <h2>Laufende Ladungen</h2>
+            <a class="linkbtn" href="/transactions">Alle →</a>
+        </div>
+        <div hx-get="/fragments/active-sessions" hx-trigger="every 10s" hx-swap="innerHTML">
+            {% include "_active_sessions.html" %}
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-head">
+            <h2>Top-Mitarbeiter diesen Monat</h2>
+            <a class="linkbtn" href="/stats">Auswertung →</a>
+        </div>
+        {% if top_employees.is_empty() %}
+            <p class="hint">Noch keine abgeschlossenen Ladungen in diesem Monat.</p>
+        {% else %}
+        <table class="data">
+            <thead><tr><th>Mitarbeiter</th><th>Ladungen</th><th>kWh</th></tr></thead>
+            <tbody>
+            {% for t in top_employees %}
+                <tr>
+                    <td>{{ t.name }}</td>
+                    <td>{{ t.sessions }}</td>
+                    <td>{{ t.energy_kwh }}</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+        {% endif %}
+    </div>
+</div>
+
+{% endblock %}

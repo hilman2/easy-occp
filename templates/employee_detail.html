@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block title %}{{ emp.display_name }}{% endblock %}
+{% block content %}
+<h1>{{ emp.display_name }}</h1>
+
+<div class="card">
+    <form method="post" action="/employees/{{ emp.id }}/update" class="row">
+        <label>Name <input name="display_name" value="{{ emp.display_name }}" required></label>
+        <label>E-Mail <input name="email" type="email" value="{{ emp.email.as_deref().unwrap_or("") }}"></label>
+        <label>Abteilung <input name="department" value="{{ emp.department.as_deref().unwrap_or("") }}"></label>
+        <label>Aktiv
+            <select name="active">
+                <option value="1" {% if emp.active != 0 %}selected{% endif %}>ja</option>
+                <option value="0" {% if emp.active == 0 %}selected{% endif %}>nein</option>
+            </select>
+        </label>
+        <button class="primary" type="submit">Speichern</button>
+    </form>
+    <form method="post" action="/employees/{{ emp.id }}/delete" onsubmit="return confirm('Mitarbeiter löschen? Chips und Transaktionen bleiben erhalten, verlieren aber die Verknüpfung.')">
+        <button class="linkbtn danger">Löschen</button>
+    </form>
+</div>
+
+<h2>Chips ({{ chips.len() }})</h2>
+<table class="data">
+    <thead><tr><th>idTag</th><th>Label</th><th>Kategorie</th><th>Aktiv</th><th>Ablauf</th></tr></thead>
+    <tbody>
+    {% for c in chips %}
+        <tr>
+            <td><code>{{ c.id_tag }}</code></td>
+            <td>{{ c.label.as_deref().unwrap_or("") }}</td>
+            <td>{{ c.kind }}</td>
+            <td>{% if c.enabled != 0 %}ja{% else %}nein{% endif %}</td>
+            <td>{{ c.expires_at.as_deref().unwrap_or("—") }}</td>
+        </tr>
+    {% endfor %}
+    {% if chips.is_empty() %}<tr><td colspan="5" class="empty">Noch keine Chips zugeordnet.</td></tr>{% endif %}
+    </tbody>
+</table>
+<p class="hint">Neue Chips werden unter <a href="/chips">Chips → Neuen Chip anlernen</a> über das Lernfenster einer Wallbox eingelesen und hier zugeordnet.</p>
+
+<h2>Letzte Ladungen</h2>
+<table class="data">
+    <thead><tr><th>Start</th><th>Ende</th><th>Wallbox</th><th>idTag</th><th>Energie</th></tr></thead>
+    <tbody>
+    {% for t in recent_tx %}
+        <tr>
+            <td>{{ t.start_time }}</td>
+            <td>{{ t.stop_time.as_deref().unwrap_or("läuft") }}</td>
+            <td>{{ t.wallbox }}</td>
+            <td><code>{{ t.id_tag }}</code></td>
+            <td>{{ t.energy_wh }} Wh</td>
+        </tr>
+    {% endfor %}
+    {% if recent_tx.is_empty() %}<tr><td colspan="5" class="empty">Keine Ladungen.</td></tr>{% endif %}
+    </tbody>
+</table>
+{% endblock %}
