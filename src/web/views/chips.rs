@@ -12,7 +12,6 @@ use crate::{AppError, AppResult, AppState};
 
 pub struct ChipRow {
     pub chip: Chip,
-    pub employee_name: Option<String>,
 }
 
 impl ChipRow {
@@ -41,41 +40,13 @@ pub async fn list(
     AdminUser(user): AdminUser,
     lang: crate::i18n::Lang,
 ) -> AppResult<Response> {
-    let rows: Vec<(
-        i64,
-        String,
-        Option<String>,
-        Option<i64>,
-        String,
-        i64,
-        Option<String>,
-        String,
-        Option<String>,
-    )> = sqlx::query_as(
-        "SELECT c.id, c.id_tag, c.label, c.employee_id, c.kind, c.enabled, c.expires_at, c.created_at,
-                e.display_name
-         FROM chips c LEFT JOIN employees e ON e.id = c.employee_id
-         ORDER BY c.created_at DESC",
-    )
-    .fetch_all(&state.db)
-    .await?;
-
-    let chips: Vec<ChipRow> = rows
-        .into_iter()
-        .map(|r| ChipRow {
-            chip: Chip {
-                id: r.0,
-                id_tag: r.1,
-                label: r.2,
-                employee_id: r.3,
-                kind: r.4,
-                enabled: r.5,
-                expires_at: r.6,
-                created_at: r.7,
-            },
-            employee_name: r.8,
-        })
-        .collect();
+    let chips: Vec<ChipRow> =
+        sqlx::query_as::<_, Chip>("SELECT * FROM chips ORDER BY created_at DESC")
+            .fetch_all(&state.db)
+            .await?
+            .into_iter()
+            .map(|chip| ChipRow { chip })
+            .collect();
 
     let active: Option<EnrollmentSession> = sqlx::query_as::<_, EnrollmentSession>(
         "SELECT * FROM enrollment_sessions
