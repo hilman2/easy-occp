@@ -1,8 +1,8 @@
 {% if active_sessions.is_empty() %}
-    <p class="hint">Aktuell lädt niemand.</p>
+    <p class="hint">{{ lang.t("dash.nobody") }}</p>
 {% else %}
 <table class="data">
-    <thead><tr><th>Wallbox</th><th>Mitarbeiter</th><th>Seit</th><th>Geladen</th><th>Leistung</th><th></th></tr></thead>
+    <thead><tr><th>{{ lang.t("common.wallbox") }}</th><th>{{ lang.t("common.employee") }}</th><th>{{ lang.t("dash.since") }}</th><th>{{ lang.t("common.charged") }}</th><th>{{ lang.t("common.power") }}</th><th></th></tr></thead>
     <tbody>
     {% for s in active_sessions %}
         <tr>
@@ -15,7 +15,7 @@
                 {% if can_stop %}
                 <form method="post" action="/wallboxes/{{ s.wallbox_id }}/remote-stop">
                     <input type="hidden" name="transaction_id" value="{{ s.tx_id }}">
-                    <button class="linkbtn danger sm">Stopp</button>
+                    <button class="linkbtn danger sm">{{ lang.t("common.stop") }}</button>
                 </form>
                 {% endif %}
             </td>

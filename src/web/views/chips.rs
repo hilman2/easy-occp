@@ -36,7 +36,11 @@ struct ListTpl {
     employees: Vec<EmpOpt>,
 }
 
-pub async fn list(State(state): State<AppState>, AdminUser(user): AdminUser) -> AppResult<Response> {
+pub async fn list(
+    State(state): State<AppState>,
+    AdminUser(user): AdminUser,
+    lang: crate::i18n::Lang,
+) -> AppResult<Response> {
     let rows: Vec<(
         i64,
         String,
@@ -99,7 +103,7 @@ pub async fn list(State(state): State<AppState>, AdminUser(user): AdminUser) -> 
         .collect();
 
     Ok(render(&ListTpl {
-        layout: LayoutCtx::new("chips", Some(user)),
+        layout: LayoutCtx::new("chips", Some(user), lang),
         chips,
         active_enrollment: active,
         wallboxes,
@@ -121,6 +125,7 @@ pub async fn update(
     State(state): State<AppState>,
     AdminUser(_): AdminUser,
     Path(id): Path<i64>,
+    lang: crate::i18n::Lang,
     Form(form): Form<UpdateForm>,
 ) -> AppResult<Response> {
     let exists: Option<(i64,)> = sqlx::query_as("SELECT id FROM chips WHERE id = ?1")
@@ -148,7 +153,7 @@ pub async fn update(
 
     let kind = form.kind.as_deref().unwrap_or("employee");
     if kind != "employee" && kind != "guest" {
-        return Err(AppError::BadRequest("Ungültige Kategorie.".into()));
+        return Err(AppError::BadRequest(lang.t("err.invalid_category").into()));
     }
 
     let enabled: i64 = if form.enabled.as_deref() == Some("1") { 1 } else { 0 };
@@ -217,6 +222,7 @@ pub async fn enroll_poll(
     State(state): State<AppState>,
     AdminUser(user): AdminUser,
     Path(id): Path<i64>,
+    lang: crate::i18n::Lang,
 ) -> AppResult<Response> {
     let sess: EnrollmentSession = sqlx::query_as::<_, EnrollmentSession>(
         "SELECT * FROM enrollment_sessions WHERE id = ?1",
@@ -231,7 +237,7 @@ pub async fn enroll_poll(
     .fetch_all(&state.db)
     .await?;
     Ok(render(&EnrollTpl {
-        layout: LayoutCtx::new("chips", Some(user)),
+        layout: LayoutCtx::new("chips", Some(user), lang),
         session: sess,
         employees,
     })?
@@ -250,6 +256,7 @@ pub async fn enroll_save(
     State(state): State<AppState>,
     AdminUser(_): AdminUser,
     Path(id): Path<i64>,
+    lang: crate::i18n::Lang,
     Form(form): Form<EnrollSave>,
 ) -> AppResult<Response> {
     let sess: EnrollmentSession = sqlx::query_as::<_, EnrollmentSession>(
@@ -261,15 +268,13 @@ pub async fn enroll_save(
     .ok_or(AppError::NotFound)?;
 
     let Some(tag) = sess.captured_id_tag.as_deref() else {
-        return Err(AppError::BadRequest(
-            "Bisher wurde kein Chip erkannt – bitte an die Wallbox halten.".into(),
-        ));
+        return Err(AppError::BadRequest(lang.t("err.no_chip_captured").into()));
     };
     if sess.consumed != 0 {
-        return Err(AppError::BadRequest("Enrollment bereits abgeschlossen.".into()));
+        return Err(AppError::BadRequest(lang.t("err.enroll_done").into()));
     }
     if form.kind != "employee" && form.kind != "guest" {
-        return Err(AppError::BadRequest("Ungültige Kategorie.".into()));
+        return Err(AppError::BadRequest(lang.t("err.invalid_category").into()));
     }
     let expires_at = form
         .expires_at
@@ -283,7 +288,8 @@ pub async fn enroll_save(
         .await?;
     if exists.is_some() {
         return Err(AppError::Conflict(format!(
-            "Chip-Tag {tag} ist bereits registriert."
+            "{} {tag}",
+            lang.t("err.chip_exists")
         )));
     }
 

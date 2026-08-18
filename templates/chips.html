@@ -1,51 +1,51 @@
 {% extends "base.html" %}
-{% block title %}Chips{% endblock %}
-{% block crumb %}Chips{% endblock %}
+{% block title %}{{ layout.t("nav.chips") }}{% endblock %}
+{% block crumb %}{{ layout.t("nav.chips") }}{% endblock %}
 {% block content %}
 <div class="page-title-row">
     <div>
-        <h1>Chips &amp; RFID-Karten</h1>
-        <div class="sub">Ladechips werden über das Lernfenster einer Wallbox erfasst und hier Mitarbeitern zugeordnet.</div>
+        <h1>{{ layout.t("chips.title") }}</h1>
+        <div class="sub">{{ layout.t("chips.sub") }}</div>
     </div>
 </div>
 
 <div class="card">
-    <div class="card-head"><h2>Neuen Chip anlernen</h2></div>
+    <div class="card-head"><h2>{{ layout.t("chips.enroll_new") }}</h2></div>
     {% match active_enrollment %}
     {% when Some with (sess) %}
-        <p>Lernfenster läuft bis <b>{{ sess.expires_at }}</b>. Chip jetzt an eine Wallbox halten.</p>
-        <a class="linkbtn" href="/chips/enroll/{{ sess.id }}">→ Zum Lernfenster</a>
+        <p>{{ layout.t("chips.window_until") }} <b>{{ sess.expires_at }}</b>. {{ layout.t("chips.hold_now") }}</p>
+        <a class="linkbtn" href="/chips/enroll/{{ sess.id }}">→ {{ layout.t("chips.to_window") }}</a>
     {% when None %}
         <form method="post" action="/chips/enroll" class="row">
-            <label>Auf Wallbox beschränken (optional)
+            <label>{{ layout.t("chips.restrict") }}
                 <select name="wallbox_id">
-                    <option value="">— egal —</option>
+                    <option value="">{{ layout.t("chips.any") }}</option>
                     {% for (id, name) in wallboxes %}
                         <option value="{{ id }}">{{ name }}</option>
                     {% endfor %}
                 </select>
             </label>
-            <button class="primary">Lernfenster starten (2 min)</button>
+            <button class="primary">{{ layout.t("chips.start_window") }}</button>
         </form>
     {% endmatch %}
 </div>
 
-<h2>Alle Chips</h2>
+<h2>{{ layout.t("chips.all") }}</h2>
 {% if chips.is_empty() %}
     <div class="empty-state">
-        <div class="title">Noch keine Chips registriert</div>
-        <div>Starte das Lernfenster oben und halte den Chip an eine Wallbox.</div>
+        <div class="title">{{ layout.t("chips.none_title") }}</div>
+        <div>{{ layout.t("chips.none_body") }}</div>
     </div>
 {% else %}
 <table class="data">
     <thead>
         <tr>
             <th>idTag</th>
-            <th>Label</th>
-            <th>Mitarbeiter</th>
-            <th>Kategorie</th>
-            <th>Aktiv</th>
-            <th>Ablauf</th>
+            <th>{{ layout.t("common.label") }}</th>
+            <th>{{ layout.t("common.employee") }}</th>
+            <th>{{ layout.t("common.category") }}</th>
+            <th>{{ layout.t("common.active") }}</th>
+            <th>{{ layout.t("common.expiry") }}</th>
             <th></th>
         </tr>
     </thead>
@@ -59,7 +59,7 @@
             </td>
             <td>
                 <select form="{{ fid }}" name="employee_id">
-                    <option value="">— unzugeordnet —</option>
+                    <option value="">{{ layout.t("chips.unassigned") }}</option>
                     {% for e in employees %}
                         <option value="{{ e.id }}" {% if row.is_assigned_to(e.id) %}selected{% endif %}>{{ e.name }}</option>
                     {% endfor %}
@@ -67,14 +67,14 @@
             </td>
             <td>
                 <select form="{{ fid }}" name="kind">
-                    <option value="employee" {% if row.chip.kind == "employee" %}selected{% endif %}>Mitarbeiter</option>
-                    <option value="guest"    {% if row.chip.kind == "guest" %}selected{% endif %}>Gast</option>
+                    <option value="employee" {% if row.chip.kind == "employee" %}selected{% endif %}>{{ layout.t("common.employee") }}</option>
+                    <option value="guest"    {% if row.chip.kind == "guest" %}selected{% endif %}>{{ layout.t("common.guest") }}</option>
                 </select>
             </td>
             <td>
                 <select form="{{ fid }}" name="enabled">
-                    <option value="1" {% if row.chip.enabled != 0 %}selected{% endif %}>ja</option>
-                    <option value="0" {% if row.chip.enabled == 0 %}selected{% endif %}>nein</option>
+                    <option value="1" {% if row.chip.enabled != 0 %}selected{% endif %}>{{ layout.t("common.yes") }}</option>
+                    <option value="0" {% if row.chip.enabled == 0 %}selected{% endif %}>{{ layout.t("common.no") }}</option>
                 </select>
             </td>
             <td>
@@ -82,16 +82,16 @@
             </td>
             <td class="nowrap">
                 <form id="{{ fid }}" method="post" action="/chips/{{ row.chip.id }}/update" style="display:inline;">
-                    <button class="primary sm" type="submit">Speichern</button>
+                    <button class="primary sm" type="submit">{{ layout.t("common.save") }}</button>
                 </form>
-                <form method="post" action="/chips/{{ row.chip.id }}/delete" style="display:inline;" onsubmit="return confirm('Chip löschen?')">
-                    <button class="linkbtn danger sm" type="submit">Löschen</button>
+                <form method="post" action="/chips/{{ row.chip.id }}/delete" style="display:inline;" onsubmit="return confirm('{{ layout.t("chips.delete_confirm") }}')">
+                    <button class="linkbtn danger sm" type="submit">{{ layout.t("common.delete") }}</button>
                 </form>
             </td>
         </tr>
     {% endfor %}
     </tbody>
 </table>
-<p class="hint">Änderungen pro Zeile mit „Speichern" übernehmen.</p>
+<p class="hint">{{ layout.t("chips.row_hint") }}</p>
 {% endif %}
 {% endblock %}

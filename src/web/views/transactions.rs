@@ -9,6 +9,7 @@ use serde::Deserialize;
 use super::{render, LayoutCtx};
 use crate::auth::AuthUser;
 use crate::domain::transaction::{fmt_kw, fmt_kwh, live_meter};
+use crate::i18n::Lang;
 use crate::{AppResult, AppState};
 
 pub struct TxRow {
@@ -43,6 +44,7 @@ pub struct Filter {
 pub async fn list(
     State(state): State<AppState>,
     AuthUser(user): AuthUser,
+    lang: Lang,
     Query(filter): Query<Filter>,
 ) -> AppResult<Response> {
     // Nicht-Admins sehen nur ihre eigenen Transaktionen — d.h. die Transaktionen
@@ -114,7 +116,7 @@ pub async fn list(
     let rows = out;
 
     Ok(render(&ListTpl {
-        layout: LayoutCtx::new("transactions", Some(user)),
+        layout: LayoutCtx::new("transactions", Some(user), lang),
         rows,
         filter_employee: filter.employee,
     })?
@@ -124,6 +126,7 @@ pub async fn list(
 pub async fn export_csv(
     State(state): State<AppState>,
     AuthUser(user): AuthUser,
+    lang: Lang,
     Query(filter): Query<Filter>,
 ) -> AppResult<Response> {
     let mine_only = !user.is_admin();
@@ -168,7 +171,8 @@ pub async fn export_csv(
 
     let mut out = String::with_capacity(256 + rows.len() * 120);
     out.push('\u{FEFF}');
-    out.push_str("id;wallbox;connector;id_tag;mitarbeiter;start;ende;energie_wh;grund\n");
+    out.push_str(lang.t("csv.header"));
+    out.push('\n');
     for (id, wname, cid, tag, uname, st, et, stop_m, start_m, reason) in rows {
         // Laufende Transaktionen: aktuellen Stand aus den MeterValues exportieren,
         // konsistent zur HTML-Liste.
@@ -189,7 +193,8 @@ pub async fn export_csv(
     }
 
     let filename = format!(
-        "transaktionen_{}.csv",
+        "{}_{}.csv",
+        lang.t("csv.filename"),
         chrono::Utc::now().format("%Y%m%d_%H%M%S")
     );
     let mut resp = (StatusCode::OK, out).into_response();

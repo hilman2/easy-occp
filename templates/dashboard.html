@@ -1,47 +1,47 @@
 {% extends "base.html" %}
-{% block title %}Cockpit – easy-occp{% endblock %}
-{% block crumb %}Cockpit{% endblock %}
+{% block title %}{{ layout.t("nav.cockpit") }} – easy-occp{% endblock %}
+{% block crumb %}{{ layout.t("nav.cockpit") }}{% endblock %}
 {% block content %}
 
 <div class="page-title-row">
     <div>
-        <h1>Cockpit</h1>
-        <div class="sub">Live-Überblick über alle Wallboxen.</div>
+        <h1>{{ layout.t("nav.cockpit") }}</h1>
+        <div class="sub">{{ layout.t("dash.sub") }}</div>
     </div>
     <div class="actions">
-        <a href="/wallboxes" class="linkbtn">Wallbox hinzufügen →</a>
-        <a href="/stats" class="linkbtn">Monatsbericht →</a>
+        <a href="/wallboxes" class="linkbtn">{{ layout.t("dash.add_wallbox") }} →</a>
+        <a href="/stats" class="linkbtn">{{ layout.t("dash.monthly_report") }} →</a>
     </div>
 </div>
 
 <div class="grid kpis">
     <div class="kpi accent">
-        <div class="label">Jetzt online</div>
+        <div class="label">{{ layout.t("dash.online_now") }}</div>
         <div class="num">{{ wallboxes_online }}<span class="unit">/ {{ wallboxes_total }}</span></div>
-        <div class="foot">Wallboxen verbunden</div>
+        <div class="foot">{{ layout.t("dash.online_foot") }}</div>
     </div>
     <div class="kpi">
-        <div class="label">Läuft gerade</div>
+        <div class="label">{{ layout.t("dash.charging_now") }}</div>
         <div class="num">{{ active_tx_count }}</div>
-        <div class="foot">aktive Ladungen</div>
+        <div class="foot">{{ layout.t("dash.active_foot") }}</div>
     </div>
     <div class="kpi">
-        <div class="label">Ladungen diesen Monat</div>
+        <div class="label">{{ layout.t("dash.month_sessions") }}</div>
         <div class="num">{{ sessions_month }}</div>
-        <div class="foot">abgeschlossen</div>
+        <div class="foot">{{ layout.t("dash.completed") }}</div>
     </div>
     <div class="kpi">
-        <div class="label">Energie diesen Monat</div>
+        <div class="label">{{ layout.t("dash.month_energy") }}</div>
         <div class="num">{{ energy_month_kwh }}<span class="unit">kWh</span></div>
-        <div class="foot">summiert über alle Wallboxen</div>
+        <div class="foot">{{ layout.t("dash.energy_foot") }}</div>
     </div>
 </div>
 
-<h2>Wallboxen</h2>
+<h2>{{ layout.t("common.wallboxes") }}</h2>
 {% if cards.is_empty() %}
     <div class="empty-state">
-        <div class="title">Noch keine Wallbox registriert</div>
-        <div>Lege unter <a href="/wallboxes">Wallboxen</a> die erste Ladestation an.</div>
+        <div class="title">{{ layout.t("dash.no_wallbox_title") }}</div>
+        <div>{{ layout.t("dash.no_wallbox_pre") }} <a href="/wallboxes">{{ layout.t("common.wallboxes") }}</a> {{ layout.t("dash.no_wallbox_post") }}</div>
     </div>
 {% else %}
 <div class="grid wallboxes">
@@ -63,12 +63,12 @@
         <div class="meta">
             {% if let Some(loc) = c.location %}<span>📍 {{ loc }}</span>{% endif %}
             <span>OCPP {{ c.ocpp_version.as_deref().unwrap_or("—") }}</span>
-            {% if c.auth_locked %}<span title="Basic-Auth aktiv">🔒 gesichert</span>{% endif %}
+            {% if c.auth_locked %}<span title="{{ layout.t("dash.secured_tip") }}">🔒 {{ layout.t("dash.secured") }}</span>{% endif %}
         </div>
         {% if c.active_tx > 0 %}
         <div class="foot">
-            <span class="muted">{{ c.active_tx }} aktive Ladung{% if c.active_tx != 1 %}en{% endif %}</span>
-            <a class="linkbtn" href="/wallboxes/{{ c.id }}">Details →</a>
+            <span class="muted">{{ c.active_tx }} {% if c.active_tx == 1 %}{{ layout.t("dash.active_one") }}{% else %}{{ layout.t("dash.active_foot") }}{% endif %}</span>
+            <a class="linkbtn" href="/wallboxes/{{ c.id }}">{{ layout.t("dash.details") }} →</a>
         </div>
         {% endif %}
     </div>
@@ -79,8 +79,8 @@
 <div class="grid cols-2" style="margin-top: 1.5rem;">
     <div class="card">
         <div class="card-head">
-            <h2>Laufende Ladungen</h2>
-            <a class="linkbtn" href="/transactions">Alle →</a>
+            <h2>{{ layout.t("dash.running_sessions") }}</h2>
+            <a class="linkbtn" href="/transactions">{{ layout.t("dash.all") }} →</a>
         </div>
         <div hx-get="/fragments/active-sessions" hx-trigger="every 10s" hx-swap="innerHTML">
             {% include "_active_sessions.html" %}
@@ -89,14 +89,14 @@
 
     <div class="card">
         <div class="card-head">
-            <h2>Top-Mitarbeiter diesen Monat</h2>
-            <a class="linkbtn" href="/stats">Auswertung →</a>
+            <h2>{{ layout.t("dash.top_employees") }}</h2>
+            <a class="linkbtn" href="/stats">{{ layout.t("nav.stats") }} →</a>
         </div>
         {% if top_employees.is_empty() %}
-            <p class="hint">Noch keine abgeschlossenen Ladungen in diesem Monat.</p>
+            <p class="hint">{{ layout.t("dash.no_completed") }}</p>
         {% else %}
         <table class="data">
-            <thead><tr><th>Mitarbeiter</th><th>Ladungen</th><th>kWh</th></tr></thead>
+            <thead><tr><th>{{ layout.t("common.employee") }}</th><th>{{ layout.t("common.sessions") }}</th><th>kWh</th></tr></thead>
             <tbody>
             {% for t in top_employees %}
                 <tr>

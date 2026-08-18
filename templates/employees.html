@@ -1,21 +1,21 @@
 {% extends "base.html" %}
-{% block title %}Mitarbeiter{% endblock %}
+{% block title %}{{ layout.t("common.employees") }}{% endblock %}
 {% block content %}
-<h1>Mitarbeiter</h1>
+<h1>{{ layout.t("common.employees") }}</h1>
 
 <details class="card">
-    <summary>Neuen Mitarbeiter anlegen</summary>
+    <summary>{{ layout.t("emp.new") }}</summary>
     <form method="post" action="/employees/new" class="row">
-        <label>Name <input name="display_name" required></label>
-        <label>E-Mail <input name="email" type="email"></label>
-        <label>Abteilung <input name="department"></label>
-        <button class="primary" type="submit">Anlegen</button>
+        <label>{{ layout.t("common.name") }} <input name="display_name" required></label>
+        <label>{{ layout.t("common.email") }} <input name="email" type="email"></label>
+        <label>{{ layout.t("emp.department") }} <input name="department"></label>
+        <button class="primary" type="submit">{{ layout.t("common.create") }}</button>
     </form>
 </details>
 
 <table class="data">
     <thead>
-        <tr><th>Name</th><th>E-Mail</th><th>Abteilung</th><th>Chips</th><th>Ladungen</th><th>Energie (kWh)</th><th>Aktiv</th></tr>
+        <tr><th>{{ layout.t("common.name") }}</th><th>{{ layout.t("common.email") }}</th><th>{{ layout.t("emp.department") }}</th><th>{{ layout.t("nav.chips") }}</th><th>{{ layout.t("common.sessions") }}</th><th>{{ layout.t("common.energy_kwh") }}</th><th>{{ layout.t("common.active") }}</th></tr>
     </thead>
     <tbody>
     {% for row in employees %}
@@ -26,11 +26,11 @@
             <td>{{ row.chip_count }}</td>
             <td>{{ row.tx_count }}</td>
             <td>{{ row.total_wh / 1000 }}</td>
-            <td>{% if row.emp.active != 0 %}ja{% else %}<span class="off">nein</span>{% endif %}</td>
+            <td>{% if row.emp.active != 0 %}{{ layout.t("common.yes") }}{% else %}<span class="off">{{ layout.t("common.no") }}</span>{% endif %}</td>
         </tr>
     {% endfor %}
     {% if employees.is_empty() %}
-        <tr><td colspan="7" class="empty">Noch keine Mitarbeiter angelegt.</td></tr>
+        <tr><td colspan="7" class="empty">{{ layout.t("emp.none") }}</td></tr>
     {% endif %}
     </tbody>
 </table>

@@ -34,14 +34,16 @@ jobs:
         shell: pwsh
         run: |
           New-Item -ItemType Directory dist\easy-occp | Out-Null
-          Copy-Item target\release\easy-occp.exe, README.md, ANLEITUNG.md, config.example.toml, LICENSE dist\easy-occp\
+          Copy-Item target\release\easy-occp.exe, config.example.toml, LICENSE dist\easy-occp\
+          Copy-Item README*.md, ANLEITUNG.md, INSTALL*.md dist\easy-occp\
           Compress-Archive -Path dist\easy-occp -DestinationPath "dist\easy-occp-${{ github.ref_name }}-${{ matrix.suffix }}.zip"
 
       - name: Paketieren (Linux)
         if: runner.os == 'Linux'
         run: |
           mkdir -p dist/easy-occp
-          cp target/release/easy-occp README.md ANLEITUNG.md config.example.toml LICENSE dist/easy-occp/
+          cp target/release/easy-occp config.example.toml LICENSE dist/easy-occp/
+          cp README*.md ANLEITUNG.md INSTALL*.md dist/easy-occp/
           tar -C dist -czf "dist/easy-occp-${{ github.ref_name }}-${{ matrix.suffix }}.tar.gz" easy-occp
 
       - uses: actions/upload-artifact@v4

@@ -428,3 +428,9 @@ small.mono { color: var(--muted); font-weight: 400; }
   .sidebar nav a { justify-content: center; padding: 0.6rem; }
   .sidebar .foot { display: none; }
 }
+
+/* Sprach-Umschalter in der Topbar */
+.langbox { display: flex; gap: .35rem; align-items: center; margin-right: 1rem; }
+.langbox .langlink { font-size: .72rem; font-weight: 600; letter-spacing: .04em; opacity: .55; text-decoration: none; color: inherit; padding: .15rem .3rem; border-radius: 4px; }
+.langbox .langlink:hover { opacity: .9; }
+.langbox .langlink.active { opacity: 1; background: rgba(127,127,127,.15); }

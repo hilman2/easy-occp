@@ -1,6 +1,18 @@
-# easy-occp v0.2.0 – Installation & Erststart (Windows)
+# easy-occp v0.3.0 – Installation & Erststart (Windows)
+
+🌐 [English](INSTALL.md) · [Deutsch](ANLEITUNG.md) · [Français](INSTALL.fr.md) · [Español](INSTALL.es.md)
 
 Management-Tool für Wallboxen (OCPP 1.5/1.6/2.0.1) — ein Binary, eine SQLite-Datei.
+
+## Was ist neu in v0.3.0
+
+- **Mehrsprachige Web-UI:** Die Oberfläche gibt es jetzt auf Deutsch, English,
+  Français und Español. Die Sprache wird automatisch anhand der
+  Browser-Einstellung erkannt und lässt sich jederzeit über den Umschalter in
+  der Kopfzeile ändern.
+- **GitHub-Repository mit CI und automatischen Releases:** Der Quellcode liegt
+  jetzt auf <https://github.com/hilman2/easy-occp>. Jede Version wird per CI
+  automatisch gebaut und als Release veröffentlicht.
 
 ## Was ist neu in v0.2.0
 
@@ -159,4 +171,4 @@ Dienst/Aufgabe entfernen, Ordner löschen — es gibt keine Registry-Einträge u
 
 ---
 
-Version 0.2.0 · Lizenz: MIT
+Version 0.3.0 · Lizenz: MIT

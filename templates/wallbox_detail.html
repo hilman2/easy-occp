@@ -3,16 +3,16 @@
 {% block content %}
 <h1>{{ wb.name }} <small class="mono">({{ wb.charge_point_id }})</small></h1>
 <p>
-    Status: {% if online %}<span class="ok">online</span>{% else %}<span class="off">offline</span>{% endif %}
+    {{ layout.t("common.status") }}: {% if online %}<span class="ok">{{ layout.t("common.online") }}</span>{% else %}<span class="off">{{ layout.t("common.offline") }}</span>{% endif %}
     · OCPP {{ wb.ocpp_version.as_deref().unwrap_or("—") }}
-    · Hersteller {{ wb.vendor.as_deref().unwrap_or("—") }} {{ wb.model.as_deref().unwrap_or("") }}
+    · {{ layout.t("wbd.manufacturer") }} {{ wb.vendor.as_deref().unwrap_or("—") }} {{ wb.model.as_deref().unwrap_or("") }}
     · Firmware {{ wb.firmware.as_deref().unwrap_or("—") }}
-    · Last Heartbeat {{ wb.last_heartbeat.as_deref().unwrap_or("—") }}
+    · {{ layout.t("wb.last_heartbeat") }} {{ wb.last_heartbeat.as_deref().unwrap_or("—") }}
 </p>
 
-<h2>Connectors</h2>
+<h2>{{ layout.t("wbd.connectors") }}</h2>
 <table class="data">
-    <thead><tr><th>#</th><th>Status</th><th>Fehler</th><th>Info</th><th>Stand</th></tr></thead>
+    <thead><tr><th>#</th><th>{{ layout.t("common.status") }}</th><th>{{ layout.t("state.error") }}</th><th>Info</th><th>{{ layout.t("wbd.updated") }}</th></tr></thead>
     <tbody>
     {% for c in connectors %}
         <tr>
@@ -23,55 +23,55 @@
             <td>{{ c.updated_at }}</td>
         </tr>
     {% endfor %}
-    {% if connectors.is_empty() %}<tr><td colspan="5" class="empty">Keine Connector-Meldungen bisher.</td></tr>{% endif %}
+    {% if connectors.is_empty() %}<tr><td colspan="5" class="empty">{{ layout.t("wbd.no_connectors") }}</td></tr>{% endif %}
     </tbody>
 </table>
 
-<h2>OCPP-Zugangsschutz (Profile 1)</h2>
+<h2>{{ layout.t("wbd.auth_title") }}</h2>
 <div class="card">
     {% if let Some(pw) = new_password %}
         <p class="ok">
-            <strong>Neues Passwort gesetzt.</strong>
-            Trage in der Wallbox folgenden Zugang ein — <em>wird nur genau jetzt angezeigt</em>:
+            <strong>{{ layout.t("wbd.pw_set") }}</strong>
+            <em>{{ layout.t("wbd.pw_show_once") }}</em>
         </p>
         <p>
-            Benutzer: <code>{{ wb.auth_basic_user.as_deref().unwrap_or(wb.charge_point_id.as_str()) }}</code><br>
-            Passwort: <code>{{ pw }}</code>
+            {{ layout.t("wbd.user") }}: <code>{{ wb.auth_basic_user.as_deref().unwrap_or(wb.charge_point_id.as_str()) }}</code><br>
+            {{ layout.t("common.password") }}: <code>{{ pw }}</code>
         </p>
     {% endif %}
 
     {% if wb.auth_basic_pass.is_some() %}
-        <p>Basic Auth ist <strong class="ok">aktiv</strong>.
-            Benutzer: <code>{{ wb.auth_basic_user.as_deref().unwrap_or(wb.charge_point_id.as_str()) }}</code>.
-            Verbindungen ohne gültigen <code>Authorization</code>-Header werden mit 401 abgelehnt.</p>
+        <p>{{ layout.t("wbd.basic_auth_is") }} <strong class="ok">{{ layout.t("wbd.active_word") }}</strong>.
+            {{ layout.t("wbd.user") }}: <code>{{ wb.auth_basic_user.as_deref().unwrap_or(wb.charge_point_id.as_str()) }}</code>.
+            {{ layout.t("wbd.auth_reject") }}</p>
     {% else %}
-        <p>Basic Auth ist <strong class="off">deaktiviert</strong> — jede Verbindung mit dieser ChargePointId wird akzeptiert.</p>
+        <p>{{ layout.t("wbd.basic_auth_is") }} <strong class="off">{{ layout.t("wbd.disabled_word") }}</strong> — {{ layout.t("wbd.auth_open") }}</p>
     {% endif %}
 
     <form method="post" action="/wallboxes/{{ wb.id }}/auth" class="row">
-        <label>Benutzer <input name="user" placeholder="(leer = ChargePointId)" value="{{ wb.auth_basic_user.as_deref().unwrap_or("") }}"></label>
-        <label>Passwort <input name="password" type="text" placeholder="min. 8 Zeichen"></label>
-        <button class="primary" type="submit">Passwort setzen</button>
-        <button class="primary" type="submit" name="generate" value="1">Generieren</button>
+        <label>{{ layout.t("wbd.user") }} <input name="user" placeholder="{{ layout.t("wbd.user_empty_hint") }}" value="{{ wb.auth_basic_user.as_deref().unwrap_or("") }}"></label>
+        <label>{{ layout.t("common.password") }} <input name="password" type="text" placeholder="{{ layout.t("wbd.pw_min") }}"></label>
+        <button class="primary" type="submit">{{ layout.t("wbd.set_password") }}</button>
+        <button class="primary" type="submit" name="generate" value="1">{{ layout.t("wbd.generate") }}</button>
     </form>
 
     {% if wb.auth_basic_pass.is_some() %}
-    <form method="post" action="/wallboxes/{{ wb.id }}/auth/clear" onsubmit="return confirm('Basic-Auth deaktivieren?')">
-        <button class="linkbtn danger">Auth deaktivieren</button>
+    <form method="post" action="/wallboxes/{{ wb.id }}/auth/clear" onsubmit="return confirm('{{ layout.t("wbd.disable_auth_confirm") }}')">
+        <button class="linkbtn danger">{{ layout.t("wbd.disable_auth") }}</button>
     </form>
     {% endif %}
 </div>
 
-<h2>Gast remote freischalten</h2>
+<h2>{{ layout.t("wbd.guest_title") }}</h2>
 <form method="post" action="/wallboxes/{{ wb.id }}/remote-start" class="row card">
-    <label>idTag (Gast) <input name="id_tag" required></label>
+    <label>{{ layout.t("wbd.guest_idtag") }} <input name="id_tag" required></label>
     <label>Connector <input name="connector_id" type="number" value="1" min="1"></label>
-    <label>Gast-Label <input name="guest_label" placeholder="z. B. Firma Mustermann"></label>
-    <button class="primary" {% if !online %}disabled{% endif %}>Jetzt freischalten</button>
+    <label>{{ layout.t("wbd.guest_label") }} <input name="guest_label" placeholder="{{ layout.t("wbd.guest_label_ph") }}"></label>
+    <button class="primary" {% if !online %}disabled{% endif %}>{{ layout.t("wbd.unlock_now") }}</button>
 </form>
-{% if !online %}<p class="hint">Wallbox ist offline — Remote-Start nicht möglich.</p>{% endif %}
+{% if !online %}<p class="hint">{{ layout.t("wbd.offline_hint") }}</p>{% endif %}
 
-<h2>Laufende Ladungen</h2>
+<h2>{{ layout.t("dash.running_sessions") }}</h2>
 <div hx-get="/wallboxes/{{ wb.id }}/live" hx-trigger="every 10s" hx-swap="innerHTML">
     {% include "_wallbox_live.html" %}
 </div>

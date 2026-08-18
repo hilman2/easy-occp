@@ -1,5 +1,5 @@
 <table class="data">
-    <thead><tr><th>Tx-ID</th><th>Conn.</th><th>idTag</th><th>Start</th><th>Geladen</th><th>Leistung</th><th></th></tr></thead>
+    <thead><tr><th>Tx-ID</th><th>Conn.</th><th>idTag</th><th>{{ lang.t("common.start") }}</th><th>{{ lang.t("common.charged") }}</th><th>{{ lang.t("common.power") }}</th><th></th></tr></thead>
     <tbody>
     {% for t in active_tx %}
         <tr>
@@ -12,11 +12,11 @@
             <td>
                 <form method="post" action="/wallboxes/{{ wb.id }}/remote-stop">
                     <input type="hidden" name="transaction_id" value="{{ t.id }}">
-                    <button class="linkbtn danger" {% if !online %}disabled{% endif %}>Stop</button>
+                    <button class="linkbtn danger" {% if !online %}disabled{% endif %}>{{ lang.t("common.stop") }}</button>
                 </form>
             </td>
         </tr>
     {% endfor %}
-    {% if active_tx.is_empty() %}<tr><td colspan="7" class="empty">Keine aktive Ladung.</td></tr>{% endif %}
+    {% if active_tx.is_empty() %}<tr><td colspan="7" class="empty">{{ lang.t("wbd.no_active") }}</td></tr>{% endif %}
     </tbody>
 </table>

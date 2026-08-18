@@ -13,6 +13,7 @@ mod views;
 pub fn router(state: AppState) -> Router {
     Router::new()
         .route("/", get(views::dashboard::get))
+        .route("/lang/:code", get(set_lang))
         .route(
             "/fragments/active-sessions",
             get(views::dashboard::active_sessions_fragment),
@@ -52,6 +53,43 @@ pub fn router(state: AppState) -> Router {
         .route("/static/*path", get(serve_asset))
         .layer(TraceLayer::new_for_http())
         .with_state(state)
+}
+
+/// Sprach-Umschalter: setzt das `lang`-Cookie und leitet zurück zur
+/// aufrufenden Seite (Referer) bzw. zum Cockpit.
+async fn set_lang(
+    axum::extract::Path(code): axum::extract::Path<String>,
+    headers: axum::http::HeaderMap,
+) -> Response {
+    let Some(lang) = crate::i18n::Lang::from_code(&code) else {
+        return (axum::http::StatusCode::BAD_REQUEST, "unknown language").into_response();
+    };
+    let back = headers
+        .get(header::REFERER)
+        .and_then(|v| v.to_str().ok())
+        // Nur lokale Pfade akzeptieren — kein Open-Redirect über fremde Referer.
+        .and_then(|r| {
+            let path = r.strip_prefix("http://").or_else(|| r.strip_prefix("https://"))
+                .and_then(|rest| rest.find('/').map(|i| &rest[i..]))
+                .unwrap_or(r);
+            if path.starts_with('/') && !path.starts_with("//") {
+                Some(path.to_string())
+            } else {
+                None
+            }
+        })
+        .unwrap_or_else(|| "/".to_string());
+    let cookie = format!(
+        "{}={}; Path=/; Max-Age=31536000; SameSite=Lax",
+        crate::i18n::LANG_COOKIE,
+        lang.code()
+    );
+    let mut resp = axum::response::Redirect::to(&back).into_response();
+    resp.headers_mut().insert(
+        header::SET_COOKIE,
+        axum::http::HeaderValue::from_str(&cookie).unwrap(),
+    );
+    resp
 }
 
 #[derive(RustEmbed)]

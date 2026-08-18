@@ -1,21 +1,21 @@
 {% extends "base.html" %}
-{% block title %}Wallboxen{% endblock %}
+{% block title %}{{ layout.t("common.wallboxes") }}{% endblock %}
 {% block content %}
-<h1>Wallboxen</h1>
+<h1>{{ layout.t("common.wallboxes") }}</h1>
 <details class="card">
-    <summary>Neue Wallbox anlegen</summary>
+    <summary>{{ layout.t("wb.new") }}</summary>
     <form method="post" action="/wallboxes/new" class="row">
         <label>ChargePointId <input name="charge_point_id" required></label>
-        <label>Name <input name="name" required></label>
-        <label>Standort <input name="location"></label>
-        <button class="primary" type="submit">Anlegen</button>
+        <label>{{ layout.t("common.name") }} <input name="name" required></label>
+        <label>{{ layout.t("common.location") }} <input name="location"></label>
+        <button class="primary" type="submit">{{ layout.t("common.create") }}</button>
     </form>
-    <p class="hint">Die Wallbox verbindet sich anschließend nach <code>ws://…/ocpp/&lt;ChargePointId&gt;</code>.</p>
+    <p class="hint">{{ layout.t("wb.hint_connect") }} <code>ws://…/ocpp/&lt;ChargePointId&gt;</code>.</p>
 </details>
 
 <table class="data">
     <thead>
-        <tr><th>Name</th><th>ChargePointId</th><th>Standort</th><th>OCPP</th><th>Online</th><th>Letzter Heartbeat</th><th></th></tr>
+        <tr><th>{{ layout.t("common.name") }}</th><th>ChargePointId</th><th>{{ layout.t("common.location") }}</th><th>OCPP</th><th>{{ layout.t("common.online") }}</th><th>{{ layout.t("wb.last_heartbeat") }}</th><th></th></tr>
     </thead>
     <tbody>
     {% for row in wallboxes %}
@@ -24,17 +24,17 @@
             <td><code>{{ row.wb.charge_point_id }}</code></td>
             <td>{{ row.wb.location.as_deref().unwrap_or("") }}</td>
             <td>{{ row.wb.ocpp_version.as_deref().unwrap_or("—") }}</td>
-            <td>{% if row.online %}<span class="ok">●</span> online{% else %}<span class="off">●</span> offline{% endif %}</td>
+            <td>{% if row.online %}<span class="ok">●</span> {{ layout.t("common.online") }}{% else %}<span class="off">●</span> {{ layout.t("common.offline") }}{% endif %}</td>
             <td>{{ row.wb.last_heartbeat.as_deref().unwrap_or("—") }}</td>
             <td>
-                <form method="post" action="/wallboxes/{{ row.wb.id }}/delete" onsubmit="return confirm('Wallbox löschen?')">
-                    <button class="linkbtn danger">Löschen</button>
+                <form method="post" action="/wallboxes/{{ row.wb.id }}/delete" onsubmit="return confirm('{{ layout.t("wb.delete_confirm") }}')">
+                    <button class="linkbtn danger">{{ layout.t("common.delete") }}</button>
                 </form>
             </td>
         </tr>
     {% endfor %}
     {% if wallboxes.is_empty() %}
-        <tr><td colspan="7" class="empty">Noch keine Wallboxen angelegt.</td></tr>
+        <tr><td colspan="7" class="empty">{{ layout.t("wb.none") }}</td></tr>
     {% endif %}
     </tbody>
 </table>

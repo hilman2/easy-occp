@@ -1,40 +1,40 @@
 {% extends "base.html" %}
-{% block title %}Statistik{% endblock %}
+{% block title %}{{ layout.t("stats.title") }}{% endblock %}
 {% block content %}
-<h1>Statistik</h1>
+<h1>{{ layout.t("stats.title") }}</h1>
 
-<h2>Monatsbericht (PDF)</h2>
+<h2>{{ layout.t("stats.monthly_pdf") }}</h2>
 <form method="get" action="/reports/monthly.pdf" class="row card">
-    <label>Jahr <input name="year" type="number" min="2020" max="2099" value="2026" required></label>
-    <label>Monat
+    <label>{{ layout.t("stats.year") }} <input name="year" type="number" min="2020" max="2099" value="2026" required></label>
+    <label>{{ layout.t("stats.month") }}
         <select name="month">
-            <option value="1">Januar</option>
-            <option value="2">Februar</option>
-            <option value="3">März</option>
-            <option value="4">April</option>
-            <option value="5">Mai</option>
-            <option value="6">Juni</option>
-            <option value="7">Juli</option>
-            <option value="8">August</option>
-            <option value="9">September</option>
-            <option value="10">Oktober</option>
-            <option value="11">November</option>
-            <option value="12">Dezember</option>
+            <option value="1">{{ layout.t("month.1") }}</option>
+            <option value="2">{{ layout.t("month.2") }}</option>
+            <option value="3">{{ layout.t("month.3") }}</option>
+            <option value="4">{{ layout.t("month.4") }}</option>
+            <option value="5">{{ layout.t("month.5") }}</option>
+            <option value="6">{{ layout.t("month.6") }}</option>
+            <option value="7">{{ layout.t("month.7") }}</option>
+            <option value="8">{{ layout.t("month.8") }}</option>
+            <option value="9">{{ layout.t("month.9") }}</option>
+            <option value="10">{{ layout.t("month.10") }}</option>
+            <option value="11">{{ layout.t("month.11") }}</option>
+            <option value="12">{{ layout.t("month.12") }}</option>
         </select>
     </label>
-    <button class="primary" type="submit">⇩ Bericht erstellen</button>
+    <button class="primary" type="submit">⇩ {{ layout.t("stats.create_report") }}</button>
 </form>
-<p class="hint">Eine Seite pro Mitarbeiter mit ≥1 abgeschlossener Ladung im gewählten Monat.</p>
+<p class="hint">{{ layout.t("stats.report_hint") }}</p>
 
-<h2>Verlauf</h2>
+<h2>{{ layout.t("stats.history") }}</h2>
 <div class="tabs">
-    <a href="/stats?g=month&r={{ range }}" class="{% if granularity == "month" %}active{% endif %}">Monat</a>
-    <a href="/stats?g=quarter&r={{ range }}" class="{% if granularity == "quarter" %}active{% endif %}">Quartal</a>
-    <a href="/stats?g=year&r={{ range }}" class="{% if granularity == "year" %}active{% endif %}">Jahr</a>
+    <a href="/stats?g=month&r={{ range }}" class="{% if granularity == "month" %}active{% endif %}">{{ layout.t("stats.month") }}</a>
+    <a href="/stats?g=quarter&r={{ range }}" class="{% if granularity == "quarter" %}active{% endif %}">{{ layout.t("stats.quarter") }}</a>
+    <a href="/stats?g=year&r={{ range }}" class="{% if granularity == "year" %}active{% endif %}">{{ layout.t("stats.year") }}</a>
 </div>
 
 <table class="data">
-    <thead><tr><th>Periode</th><th>Ladungen</th><th>Energie (kWh)</th></tr></thead>
+    <thead><tr><th>{{ layout.t("stats.period") }}</th><th>{{ layout.t("common.sessions") }}</th><th>{{ layout.t("common.energy_kwh") }}</th></tr></thead>
     <tbody>
     {% for r in rows %}
         <tr>
@@ -43,46 +43,46 @@
             <td>{{ r.energy_wh / 1000 }}</td>
         </tr>
     {% endfor %}
-    {% if rows.is_empty() %}<tr><td colspan="3" class="empty">Keine abgeschlossenen Ladungen im Zeitraum.</td></tr>{% endif %}
+    {% if rows.is_empty() %}<tr><td colspan="3" class="empty">{{ layout.t("stats.none_range") }}</td></tr>{% endif %}
     </tbody>
 </table>
 
-<h2>Rollups</h2>
+<h2>{{ layout.t("stats.rollups") }}</h2>
 <div class="tabs">
-    <a href="/stats?g={{ granularity }}&r=30d"  class="{% if range == "30d"  %}active{% endif %}">30 Tage</a>
-    <a href="/stats?g={{ granularity }}&r=90d"  class="{% if range == "90d"  %}active{% endif %}">90 Tage</a>
-    <a href="/stats?g={{ granularity }}&r=365d" class="{% if range == "365d" %}active{% endif %}">365 Tage</a>
-    <a href="/stats?g={{ granularity }}&r=all"  class="{% if range == "all"  %}active{% endif %}">Gesamt</a>
+    <a href="/stats?g={{ granularity }}&r=30d"  class="{% if range == "30d"  %}active{% endif %}">30 {{ layout.t("stats.days") }}</a>
+    <a href="/stats?g={{ granularity }}&r=90d"  class="{% if range == "90d"  %}active{% endif %}">90 {{ layout.t("stats.days") }}</a>
+    <a href="/stats?g={{ granularity }}&r=365d" class="{% if range == "365d" %}active{% endif %}">365 {{ layout.t("stats.days") }}</a>
+    <a href="/stats?g={{ granularity }}&r=all"  class="{% if range == "all"  %}active{% endif %}">{{ layout.t("common.total") }}</a>
 </div>
 
-<h3>Mitarbeiter vs. Gäste</h3>
+<h3>{{ layout.t("stats.emp_vs_guests") }}</h3>
 <table class="data">
-    <thead><tr><th>Gruppe</th><th>Ladungen</th><th>Energie (kWh)</th></tr></thead>
+    <thead><tr><th>{{ layout.t("stats.group") }}</th><th>{{ layout.t("common.sessions") }}</th><th>{{ layout.t("common.energy_kwh") }}</th></tr></thead>
     <tbody>
-        <tr><td>Mitarbeiter</td><td>{{ split.employee_sessions }}</td><td>{{ split.employee_wh / 1000 }}</td></tr>
-        <tr><td>Gäste</td><td>{{ split.guest_sessions }}</td><td>{{ split.guest_wh / 1000 }}</td></tr>
+        <tr><td>{{ layout.t("common.employees") }}</td><td>{{ split.employee_sessions }}</td><td>{{ split.employee_wh / 1000 }}</td></tr>
+        <tr><td>{{ layout.t("common.guests") }}</td><td>{{ split.guest_sessions }}</td><td>{{ split.guest_wh / 1000 }}</td></tr>
     </tbody>
 </table>
 
-<h3>Nach Mitarbeiter / Gast-Label</h3>
+<h3>{{ layout.t("stats.by_employee") }}</h3>
 <table class="data">
-    <thead><tr><th>Mitarbeiter</th><th>Ladungen</th><th>Energie (kWh)</th></tr></thead>
+    <thead><tr><th>{{ layout.t("common.employee") }}</th><th>{{ layout.t("common.sessions") }}</th><th>{{ layout.t("common.energy_kwh") }}</th></tr></thead>
     <tbody>
     {% for u in per_employee %}
         <tr><td>{{ u.label }}</td><td>{{ u.sessions }}</td><td>{{ u.energy_wh / 1000 }}</td></tr>
     {% endfor %}
-    {% if per_employee.is_empty() %}<tr><td colspan="3" class="empty">Keine Daten.</td></tr>{% endif %}
+    {% if per_employee.is_empty() %}<tr><td colspan="3" class="empty">{{ layout.t("common.no_data") }}</td></tr>{% endif %}
     </tbody>
 </table>
 
-<h3>Nach Wallbox</h3>
+<h3>{{ layout.t("stats.by_wallbox") }}</h3>
 <table class="data">
-    <thead><tr><th>Wallbox</th><th>Ladungen</th><th>Energie (kWh)</th></tr></thead>
+    <thead><tr><th>{{ layout.t("common.wallbox") }}</th><th>{{ layout.t("common.sessions") }}</th><th>{{ layout.t("common.energy_kwh") }}</th></tr></thead>
     <tbody>
     {% for w in per_wallbox %}
         <tr><td>{{ w.label }}</td><td>{{ w.sessions }}</td><td>{{ w.energy_wh / 1000 }}</td></tr>
     {% endfor %}
-    {% if per_wallbox.is_empty() %}<tr><td colspan="3" class="empty">Keine Daten.</td></tr>{% endif %}
+    {% if per_wallbox.is_empty() %}<tr><td colspan="3" class="empty">{{ layout.t("common.no_data") }}</td></tr>{% endif %}
     </tbody>
 </table>
 {% endblock %}

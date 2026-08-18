@@ -34,6 +34,7 @@ pub struct Filter {
 pub async fn show(
     State(state): State<AppState>,
     AdminUser(user): AdminUser,
+    lang: crate::i18n::Lang,
     Query(filter): Query<Filter>,
 ) -> AppResult<Response> {
     let g = filter.g.as_deref().unwrap_or("month");
@@ -63,7 +64,7 @@ pub async fn show(
         .map_err(crate::AppError::Other)?;
 
     let tpl = StatsTpl {
-        layout: LayoutCtx::new("stats", Some(user)),
+        layout: LayoutCtx::new("stats", Some(user), lang),
         granularity: g.to_string(),
         range: range.to_string(),
         rows,

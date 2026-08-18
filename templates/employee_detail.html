@@ -5,54 +5,54 @@
 
 <div class="card">
     <form method="post" action="/employees/{{ emp.id }}/update" class="row">
-        <label>Name <input name="display_name" value="{{ emp.display_name }}" required></label>
-        <label>E-Mail <input name="email" type="email" value="{{ emp.email.as_deref().unwrap_or("") }}"></label>
-        <label>Abteilung <input name="department" value="{{ emp.department.as_deref().unwrap_or("") }}"></label>
-        <label>Aktiv
+        <label>{{ layout.t("common.name") }} <input name="display_name" value="{{ emp.display_name }}" required></label>
+        <label>{{ layout.t("common.email") }} <input name="email" type="email" value="{{ emp.email.as_deref().unwrap_or("") }}"></label>
+        <label>{{ layout.t("emp.department") }} <input name="department" value="{{ emp.department.as_deref().unwrap_or("") }}"></label>
+        <label>{{ layout.t("common.active") }}
             <select name="active">
-                <option value="1" {% if emp.active != 0 %}selected{% endif %}>ja</option>
-                <option value="0" {% if emp.active == 0 %}selected{% endif %}>nein</option>
+                <option value="1" {% if emp.active != 0 %}selected{% endif %}>{{ layout.t("common.yes") }}</option>
+                <option value="0" {% if emp.active == 0 %}selected{% endif %}>{{ layout.t("common.no") }}</option>
             </select>
         </label>
-        <button class="primary" type="submit">Speichern</button>
+        <button class="primary" type="submit">{{ layout.t("common.save") }}</button>
     </form>
-    <form method="post" action="/employees/{{ emp.id }}/delete" onsubmit="return confirm('Mitarbeiter löschen? Chips und Transaktionen bleiben erhalten, verlieren aber die Verknüpfung.')">
-        <button class="linkbtn danger">Löschen</button>
+    <form method="post" action="/employees/{{ emp.id }}/delete" onsubmit="return confirm('{{ layout.t("emp.delete_confirm") }}')">
+        <button class="linkbtn danger">{{ layout.t("common.delete") }}</button>
     </form>
 </div>
 
-<h2>Chips ({{ chips.len() }})</h2>
+<h2>{{ layout.t("nav.chips") }} ({{ chips.len() }})</h2>
 <table class="data">
-    <thead><tr><th>idTag</th><th>Label</th><th>Kategorie</th><th>Aktiv</th><th>Ablauf</th></tr></thead>
+    <thead><tr><th>idTag</th><th>{{ layout.t("common.label") }}</th><th>{{ layout.t("common.category") }}</th><th>{{ layout.t("common.active") }}</th><th>{{ layout.t("common.expiry") }}</th></tr></thead>
     <tbody>
     {% for c in chips %}
         <tr>
             <td><code>{{ c.id_tag }}</code></td>
             <td>{{ c.label.as_deref().unwrap_or("") }}</td>
             <td>{{ c.kind }}</td>
-            <td>{% if c.enabled != 0 %}ja{% else %}nein{% endif %}</td>
+            <td>{% if c.enabled != 0 %}{{ layout.t("common.yes") }}{% else %}{{ layout.t("common.no") }}{% endif %}</td>
             <td>{{ c.expires_at.as_deref().unwrap_or("—") }}</td>
         </tr>
     {% endfor %}
-    {% if chips.is_empty() %}<tr><td colspan="5" class="empty">Noch keine Chips zugeordnet.</td></tr>{% endif %}
+    {% if chips.is_empty() %}<tr><td colspan="5" class="empty">{{ layout.t("emp.no_chips") }}</td></tr>{% endif %}
     </tbody>
 </table>
-<p class="hint">Neue Chips werden unter <a href="/chips">Chips → Neuen Chip anlernen</a> über das Lernfenster einer Wallbox eingelesen und hier zugeordnet.</p>
+<p class="hint">{{ layout.t("emp.chips_hint_pre") }} <a href="/chips">{{ layout.t("nav.chips") }} → {{ layout.t("chips.enroll_new") }}</a> {{ layout.t("emp.chips_hint_post") }}</p>
 
-<h2>Letzte Ladungen</h2>
+<h2>{{ layout.t("emp.recent") }}</h2>
 <table class="data">
-    <thead><tr><th>Start</th><th>Ende</th><th>Wallbox</th><th>idTag</th><th>Energie</th></tr></thead>
+    <thead><tr><th>{{ layout.t("common.start") }}</th><th>{{ layout.t("common.end") }}</th><th>{{ layout.t("common.wallbox") }}</th><th>idTag</th><th>{{ layout.t("common.energy") }}</th></tr></thead>
     <tbody>
     {% for t in recent_tx %}
         <tr>
             <td>{{ t.start_time }}</td>
-            <td>{{ t.stop_time.as_deref().unwrap_or("läuft") }}</td>
+            <td>{{ t.stop_time.as_deref().unwrap_or(layout.t("common.running")) }}</td>
             <td>{{ t.wallbox }}</td>
             <td><code>{{ t.id_tag }}</code></td>
             <td>{{ t.energy_wh }} Wh</td>
         </tr>
     {% endfor %}
-    {% if recent_tx.is_empty() %}<tr><td colspan="5" class="empty">Keine Ladungen.</td></tr>{% endif %}
+    {% if recent_tx.is_empty() %}<tr><td colspan="5" class="empty">{{ layout.t("emp.no_sessions") }}</td></tr>{% endif %}
     </tbody>
 </table>
 {% endblock %}

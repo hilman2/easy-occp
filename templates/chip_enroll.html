@@ -1,35 +1,35 @@
 {% extends "base.html" %}
-{% block title %}Chip anlernen{% endblock %}
+{% block title %}{{ layout.t("enroll.title") }}{% endblock %}
 {% block content %}
-<h1>Chip anlernen</h1>
+<h1>{{ layout.t("enroll.title") }}</h1>
 <div class="card"
      {% if session.captured_id_tag.is_none() %}hx-get="/chips/enroll/{{ session.id }}" hx-trigger="load delay:2s" hx-swap="outerHTML"{% endif %}>
     {% match session.captured_id_tag %}
     {% when Some with (tag) %}
-        <p class="ok">Chip erkannt: <code>{{ tag }}</code></p>
+        <p class="ok">{{ layout.t("enroll.detected") }} <code>{{ tag }}</code></p>
         <form method="post" action="/chips/enroll/{{ session.id }}/save" class="row">
-            <label>Label <input name="label" placeholder="z. B. Karte Büro-01"></label>
-            <label>Kategorie
+            <label>{{ layout.t("common.label") }} <input name="label" placeholder="{{ layout.t("enroll.label_ph") }}"></label>
+            <label>{{ layout.t("common.category") }}
                 <select name="kind">
-                    <option value="employee">Mitarbeiter</option>
-                    <option value="guest">Gast</option>
+                    <option value="employee">{{ layout.t("common.employee") }}</option>
+                    <option value="guest">{{ layout.t("common.guest") }}</option>
                 </select>
             </label>
-            <label>Mitarbeiter (optional — bei Gäste-Chip leer lassen)
+            <label>{{ layout.t("enroll.employee_optional") }}
                 <select name="employee_id">
-                    <option value="">— kein —</option>
+                    <option value="">{{ layout.t("enroll.none_opt") }}</option>
                     {% for (id, name) in employees %}<option value="{{ id }}">{{ name }}</option>{% endfor %}
                 </select>
             </label>
-            <label>Gültig bis (optional, RFC3339)
+            <label>{{ layout.t("enroll.valid_until") }}
                 <input name="expires_at" placeholder="2027-01-01T00:00:00Z">
             </label>
-            <button class="primary">Speichern</button>
+            <button class="primary">{{ layout.t("common.save") }}</button>
         </form>
     {% when None %}
-        <p>Bitte Chip an eine der Wallboxen halten. Das Fenster läuft bis <b>{{ session.expires_at }}</b>.</p>
-        <p class="hint">Diese Seite aktualisiert sich alle 2 Sekunden automatisch.</p>
+        <p>{{ layout.t("enroll.hold_hint") }} <b>{{ session.expires_at }}</b>.</p>
+        <p class="hint">{{ layout.t("enroll.autorefresh") }}</p>
     {% endmatch %}
 </div>
-<p><a href="/chips">← zurück</a></p>
+<p><a href="/chips">← {{ layout.t("common.back") }}</a></p>
 {% endblock %}

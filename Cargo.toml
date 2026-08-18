@@ -1,6 +1,6 @@
 [package]
 name = "easy-occp"
-version = "0.2.0"
+version = "0.3.0"
 edition = "2021"
 rust-version = "1.80"
 description = "Einfaches Management-Tool für Wallboxen (OCPP 1.5/1.6/2.0.1) für KMUs"

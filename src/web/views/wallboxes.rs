@@ -10,6 +10,7 @@ use super::{render, LayoutCtx};
 use crate::auth::AdminUser;
 use crate::domain::transaction::{fmt_kw, fmt_kwh, live_meter};
 use crate::domain::wallbox::{Connector, Wallbox};
+use crate::i18n::Lang;
 use crate::{AppError, AppResult, AppState};
 
 #[derive(Template)]
@@ -24,7 +25,11 @@ pub struct WallboxRow {
     pub online: bool,
 }
 
-pub async fn list(State(state): State<AppState>, AdminUser(user): AdminUser) -> AppResult<Response> {
+pub async fn list(
+    State(state): State<AppState>,
+    AdminUser(user): AdminUser,
+    lang: Lang,
+) -> AppResult<Response> {
     let wallboxes: Vec<Wallbox> = sqlx::query_as::<_, Wallbox>(
         "SELECT * FROM wallboxes ORDER BY name",
     )
@@ -40,7 +45,7 @@ pub async fn list(State(state): State<AppState>, AdminUser(user): AdminUser) -> 
         .collect();
 
     let tpl = ListTpl {
-        layout: LayoutCtx::new("wallboxes", Some(user)),
+        layout: LayoutCtx::new("wallboxes", Some(user), lang),
         wallboxes: rows,
     };
     Ok(render(&tpl)?.into_response())
@@ -56,12 +61,13 @@ pub struct CreateForm {
 pub async fn create(
     State(state): State<AppState>,
     AdminUser(_): AdminUser,
+    lang: Lang,
     Form(form): Form<CreateForm>,
 ) -> AppResult<Response> {
     let cp = form.charge_point_id.trim();
     let name = form.name.trim();
     if cp.is_empty() || name.is_empty() {
-        return Err(AppError::BadRequest("ID und Name sind Pflicht.".into()));
+        return Err(AppError::BadRequest(lang.t("err.id_name_required").into()));
     }
     let result = sqlx::query(
         "INSERT INTO wallboxes (charge_point_id, name, location) VALUES (?1, ?2, ?3)",
@@ -74,7 +80,8 @@ pub async fn create(
     if let Err(sqlx::Error::Database(db)) = &result {
         if db.is_unique_violation() {
             return Err(AppError::Conflict(format!(
-                "ChargePointId '{cp}' existiert bereits."
+                "{} '{cp}'",
+                lang.t("err.cp_exists")
             )));
         }
     }
@@ -91,6 +98,7 @@ struct DetailTpl {
     connectors: Vec<Connector>,
     active_tx: Vec<ActiveTx>,
     new_password: Option<String>,
+    lang: Lang,
 }
 
 pub struct ActiveTx {
@@ -139,6 +147,7 @@ struct LiveTpl {
     wb: Wallbox,
     online: bool,
     active_tx: Vec<ActiveTx>,
+    lang: Lang,
 }
 
 /// htmx-Fragment: Tabelle der laufenden Ladungen, wird von der Detailseite
@@ -147,6 +156,7 @@ pub async fn live_fragment(
     State(state): State<AppState>,
     AdminUser(_): AdminUser,
     Path(id): Path<i64>,
+    lang: Lang,
 ) -> AppResult<Response> {
     let wb: Wallbox = sqlx::query_as::<_, Wallbox>("SELECT * FROM wallboxes WHERE id = ?1")
         .bind(id)
@@ -159,6 +169,7 @@ pub async fn live_fragment(
         wb,
         online,
         active_tx,
+        lang,
     })?
     .into_response())
 }
@@ -172,6 +183,7 @@ pub async fn detail(
     State(state): State<AppState>,
     AdminUser(user): AdminUser,
     Path(id): Path<i64>,
+    lang: Lang,
     axum::extract::Query(q): axum::extract::Query<DetailQuery>,
 ) -> AppResult<Response> {
     let wb: Wallbox = sqlx::query_as::<_, Wallbox>("SELECT * FROM wallboxes WHERE id = ?1")
@@ -189,12 +201,13 @@ pub async fn detail(
 
     let online = state.ocpp_hub.get(&wb.charge_point_id).is_some();
     let tpl = DetailTpl {
-        layout: LayoutCtx::new("wallboxes", Some(user)),
+        layout: LayoutCtx::new("wallboxes", Some(user), lang),
         wb,
         online,
         connectors,
         active_tx,
         new_password: q.pw,
+        lang,
     };
     Ok(render(&tpl)?.into_response())
 }
@@ -222,6 +235,7 @@ pub async fn remote_start(
     State(state): State<AppState>,
     AdminUser(_): AdminUser,
     Path(id): Path<i64>,
+    lang: Lang,
     Form(form): Form<RemoteStartForm>,
 ) -> AppResult<Response> {
     let wb: Wallbox = sqlx::query_as::<_, Wallbox>("SELECT * FROM wallboxes WHERE id = ?1")
@@ -232,7 +246,7 @@ pub async fn remote_start(
 
     let id_tag = form.id_tag.trim();
     if id_tag.is_empty() {
-        return Err(AppError::BadRequest("idTag fehlt.".into()));
+        return Err(AppError::BadRequest(lang.t("err.idtag_missing").into()));
     }
 
     // Falls der Tag unbekannt ist, legen wir einen Gast-Chip an (einmalig nutzbar),
@@ -264,7 +278,8 @@ pub async fn remote_start(
 
     if status != "Accepted" {
         return Err(AppError::Conflict(format!(
-            "Wallbox hat RemoteStart abgelehnt: {status}"
+            "{} {status}",
+            lang.t("err.remote_start_rejected")
         )));
     }
     Ok(Redirect::to(&format!("/wallboxes/{id}")).into_response())
@@ -281,6 +296,7 @@ pub async fn set_auth(
     State(state): State<AppState>,
     AdminUser(_): AdminUser,
     Path(id): Path<i64>,
+    lang: Lang,
     Form(form): Form<SetAuthForm>,
 ) -> AppResult<Response> {
     let exists: Option<(i64,)> = sqlx::query_as("SELECT id FROM wallboxes WHERE id = ?1")
@@ -297,9 +313,7 @@ pub async fn set_auth(
     } else {
         let p = form.password.as_deref().unwrap_or("").trim().to_string();
         if p.len() < 8 {
-            return Err(AppError::BadRequest(
-                "Passwort muss mindestens 8 Zeichen haben (oder 'Generieren' nutzen).".into(),
-            ));
+            return Err(AppError::BadRequest(lang.t("err.pw_min8").into()));
         }
         (p, "gesetzt")
     };
@@ -362,6 +376,7 @@ pub async fn remote_stop(
     State(state): State<AppState>,
     AdminUser(_): AdminUser,
     Path(id): Path<i64>,
+    lang: Lang,
     Form(form): Form<RemoteStopForm>,
 ) -> AppResult<Response> {
     let wb: Wallbox = sqlx::query_as::<_, Wallbox>("SELECT * FROM wallboxes WHERE id = ?1")
@@ -376,7 +391,8 @@ pub async fn remote_stop(
             .map_err(|e| AppError::Conflict(format!("RemoteStop: {e}")))?;
     if status != "Accepted" {
         return Err(AppError::Conflict(format!(
-            "Wallbox hat RemoteStop abgelehnt: {status}"
+            "{} {status}",
+            lang.t("err.remote_stop_rejected")
         )));
     }
     Ok(Redirect::to(&format!("/wallboxes/{id}")).into_response())

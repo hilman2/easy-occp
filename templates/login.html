@@ -1,18 +1,18 @@
 {% extends "auth.html" %}
-{% block title %}Anmelden – easy-occp{% endblock %}
+{% block title %}{{ layout.t("login.title") }} – easy-occp{% endblock %}
 {% block content %}
 <div class="login-card">
-    <h1>Anmelden</h1>
+    <h1>{{ layout.t("login.title") }}</h1>
     {% if let Some(e) = error %}<div class="err">{{ e }}</div>{% endif %}
     <form method="post" action="/login">
-        <label>Benutzername
+        <label>{{ layout.t("common.username") }}
             <input name="username" autocomplete="username" autofocus required>
         </label>
-        <label>Passwort
+        <label>{{ layout.t("common.password") }}
             <input type="password" name="password" autocomplete="current-password" required>
         </label>
-        <button type="submit" class="primary">Anmelden</button>
+        <button type="submit" class="primary">{{ layout.t("login.title") }}</button>
     </form>
-    <p class="hint">Standard-Zugang beim ersten Start: <code>admin</code> / <code>admin</code></p>
+    <p class="hint">{{ layout.t("login.hint") }} <code>admin</code> / <code>admin</code></p>
 </div>
 {% endblock %}

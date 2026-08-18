@@ -8,6 +8,7 @@ use serde::Deserialize;
 use super::{render, LayoutCtx};
 use crate::auth::session::{clear_cookie_header, cookie_header, COOKIE_NAME};
 use crate::auth::{authenticate_username_password, session};
+use crate::i18n::Lang;
 use crate::{AppResult, AppState};
 
 #[derive(Template)]
@@ -17,9 +18,9 @@ struct LoginTemplate {
     error: Option<String>,
 }
 
-pub async fn login_form() -> AppResult<Response> {
+pub async fn login_form(lang: Lang) -> AppResult<Response> {
     let tpl = LoginTemplate {
-        layout: LayoutCtx::new("login", None),
+        layout: LayoutCtx::new("login", None, lang),
         error: None,
     };
     Ok(render(&tpl)?.into_response())
@@ -33,6 +34,7 @@ pub struct LoginForm {
 
 pub async fn login_post(
     State(state): State<AppState>,
+    lang: Lang,
     Form(form): Form<LoginForm>,
 ) -> AppResult<Response> {
     match authenticate_username_password(&state, form.username.trim(), &form.password).await {
@@ -48,8 +50,8 @@ pub async fn login_post(
         }
         Err(_) => {
             let tpl = LoginTemplate {
-                layout: LayoutCtx::new("login", None),
-                error: Some("Benutzername oder Passwort falsch.".into()),
+                layout: LayoutCtx::new("login", None, lang),
+                error: Some(lang.t("login.failed").to_string()),
             };
             Ok(render(&tpl)?.into_response())
         }

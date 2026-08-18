@@ -1,123 +1,126 @@
 # easy-occp
 
+🌐 [English](README.md) · [Deutsch](README.de.md) · [Français](README.fr.md) · [Español](README.es.md)
+
 [![CI](https://github.com/hilman2/easy-occp/actions/workflows/ci.yml/badge.svg)](https://github.com/hilman2/easy-occp/actions/workflows/ci.yml)
 [![Release](https://img.shields.io/github/v/release/hilman2/easy-occp)](https://github.com/hilman2/easy-occp/releases/latest)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-Einfaches Management-Tool für Wallboxen für **KMUs mit 1–10 Wallboxen**.
+Simple management tool for EV charging stations (wallboxes), built for **SMBs with 1–10 wallboxes**.
 
-- **Ein Binary, eine SQLite-Datei** – keine externe Datenbank, kein Message-Broker.
-- **OCPP 1.6J** (vollständig) + **OCPP 2.0.1** (WebSocket-Gerüst, BootNotification / TransactionEvent) + **OCPP 1.5 SOAP** (Gerüst für Boot/Heartbeat).
-- **Moderne Web-UI** (Askama + htmx), lokale Benutzer mit Argon2-Passwörtern.
-- Active Directory (LDAP) und Microsoft Entra (OIDC) sind als Konfigurations-Felder vorbereitet – die konkreten Bind-/Flow-Implementierungen folgen.
-- Läuft auf **Windows** (Fokus) **und Linux**.
+- **One binary, one SQLite file** – no external database, no message broker.
+- **OCPP 1.6J** (complete) + **OCPP 2.0.1** (WebSocket scaffold, BootNotification / TransactionEvent) + **OCPP 1.5 SOAP** (scaffold for Boot/Heartbeat).
+- **Modern web UI** (Askama + htmx), local users with Argon2 passwords.
+- Active Directory (LDAP) and Microsoft Entra (OIDC) are prepared as configuration fields – the concrete bind/flow implementations will follow.
+- Runs on **Windows** (primary focus) **and Linux**.
 
 ## Features
 
-| Bereich         | Status |
+| Area            | Status |
 |-----------------|--------|
-| Wallbox-Inventar + Status (online/offline, Connectors, Firmware) | ✅ |
-| Chip-Verwaltung, Anlernen via „Lernfenster" (2 min, Authorize-Intercept) | ✅ |
-| Chip → Mitarbeiter-Zuordnung, Gast-Chips, Gültigkeits-Ablauf | ✅ |
-| Remote-Freischalten für Gäste, Buchung auf Gast-Label | ✅ |
-| Live-Werte während der Ladung (geladene kWh, aktuelle Leistung, SoC) | ✅ |
-| Transaktionsliste, Filter nach Benutzer | ✅ |
-| Statistik nach Monat / Quartal / Jahr | ✅ |
-| Benutzerverwaltung (admin/user), lokales Passwort | ✅ |
-| Active Directory (LDAP) | 🟡 Konfig vorbereitet |
-| Entra ID (OIDC)        | 🟡 Konfig vorbereitet |
+| Wallbox inventory + status (online/offline, connectors, firmware) | ✅ |
+| RFID chip management, enrollment via "learning window" (2 min, Authorize intercept) | ✅ |
+| Chip → employee assignment, guest chips, validity expiry | ✅ |
+| Remote unlocking for guests, billing to guest label | ✅ |
+| Live values during charging (charged kWh, current power, SoC) | ✅ |
+| Transaction list, filter by user | ✅ |
+| Statistics by month / quarter / year | ✅ |
+| User management (admin/user), local password | ✅ |
+| Multilingual UI (Deutsch, English, Français, Español) | ✅ |
+| Active Directory (LDAP) | 🟡 Config prepared |
+| Entra ID (OIDC)        | 🟡 Config prepared |
 
-## Starten
+## Getting started
 
-**Fertige Binaries** (Windows x64, Linux x64) gibt es unter
-[Releases](https://github.com/hilman2/easy-occp/releases/latest) — entpacken,
-`easy-occp.exe` bzw. `easy-occp` starten, fertig (siehe `ANLEITUNG.md` im Paket).
+**Prebuilt binaries** (Windows x64, Linux x64) are available under
+[Releases](https://github.com/hilman2/easy-occp/releases/latest) — unpack,
+run `easy-occp.exe` or `easy-occp`, done (see `INSTALL.md` in the package).
 
-Oder selbst bauen:
+Or build it yourself:
 
 ```bash
-# einmalig: Konfig anlegen (optional)
+# once: create a config (optional)
 copy config.example.toml config.toml
 
-# Build + Start
+# Build + start
 cargo run --release
 ```
 
-Danach die UI unter <http://localhost:8080> öffnen. **Default-Login beim ersten Start:** `admin` / `admin` – Passwort bitte direkt unter „Benutzer" ändern.
+Then open the UI at <http://localhost:8080>. **Default login on first start:** `admin` / `admin` – please change the password right away under "Users".
 
-Admin-Passwort vergessen?
+Forgot the admin password?
 
 ```bash
-cargo run --release -- --reset-admin "neuesPasswort123"
+cargo run --release -- --reset-admin "newPassword123"
 ```
 
-## Wallbox konfigurieren
+## Configuring a wallbox
 
-Wallboxen stellen eine WebSocket-Verbindung her:
+Wallboxes establish a WebSocket connection:
 
 ```
 ws://<host>:8080/ocpp/<ChargePointId>
 ```
 
-Subprotokolle werden automatisch ausgehandelt (`ocpp1.6` oder `ocpp2.0.1`).
+Subprotocols are negotiated automatically (`ocpp1.6` or `ocpp2.0.1`).
 
-Für ältere OCPP-1.5-Geräte (SOAP):
+For older OCPP 1.5 devices (SOAP):
 
 ```
 POST http://<host>:8080/ocpp15
 ```
 
-### Live-Messwerte während der Ladung
+### Live meter readings during charging
 
-Beim Verbinden einer OCPP-1.6-Wallbox konfiguriert der Server sie automatisch so,
-dass sie während einer Ladung alle 30 Sekunden Zählerstand, Leistung und (falls
-verfügbar) SoC meldet (`MeterValueSampleInterval`, `MeterValuesSampledData`).
-Das Intervall ist über `config.toml` einstellbar, `0` deaktiviert die
-Auto-Konfiguration:
+When an OCPP 1.6 wallbox connects, the server automatically configures it to
+report the meter reading, power, and (if available) SoC every 30 seconds during
+a charging session (`MeterValueSampleInterval`, `MeterValuesSampledData`).
+The interval can be adjusted via `config.toml`; `0` disables the
+auto-configuration:
 
 ```toml
 [ocpp]
 meter_interval_s = 30
 ```
 
-Cockpit und Wallbox-Detailseite aktualisieren die laufenden Ladungen alle
-10 Sekunden automatisch (htmx-Polling). Meldet eine Wallbox keine Leistung,
-wird sie aus den letzten beiden Zählerständen abgeleitet.
+The cockpit and the wallbox detail page automatically refresh active charging
+sessions every 10 seconds (htmx polling). If a wallbox does not report power,
+it is derived from the last two meter readings.
 
-## Datenhaltung
+## Data storage
 
-Alles liegt in **einer SQLite-Datei** unter `data/easy-occp.db` (über `config.toml` änderbar). Migrationen liegen in `migrations/` und werden beim Start automatisch angewendet.
+Everything lives in **one SQLite file** at `data/easy-occp.db` (changeable via `config.toml`). Migrations reside in `migrations/` and are applied automatically at startup.
 
-### Sanity-Checks beim Datenempfang
+### Sanity checks on incoming data
 
-- **Timestamps**: >24 h in der Zukunft oder >10 Jahre in der Vergangenheit werden verworfen – Fallback auf die Server-Uhrzeit.
-- **StartTransaction / StopTransaction**: Idempotent gegen Wiederholungen; rückläufige Meter-Werte werden korrigiert.
-- **StatusNotification**: UPSERT pro (Wallbox, Connector) – keine Duplikate.
-- **MeterValues**: negative Werte werden verworfen, SoC auf 0–100 % validiert, kWh → Wh normalisiert.
-- **Enrollment**: Ein neu erfasster Tag wird genau einer offenen Lernfenster-Session zugeordnet.
+- **Timestamps**: >24 h in the future or >10 years in the past are discarded – fallback to the server clock.
+- **StartTransaction / StopTransaction**: Idempotent against repeats; decreasing meter values are corrected.
+- **StatusNotification**: UPSERT per (wallbox, connector) – no duplicates.
+- **MeterValues**: negative values are discarded, SoC validated to 0–100 %, kWh → Wh normalized.
+- **Enrollment**: A newly captured tag is assigned to exactly one open learning-window session.
 
-## Projekt-Layout
+## Project layout
 
 ```
 src/
-  main.rs           – Einstiegspunkt, Tokio-Runtime, SQLite-Pool
-  config.rs         – TOML-Konfiguration
-  db.rs             – Bootstrap + Helpers (Argon2, Settings)
+  main.rs           – entry point, Tokio runtime, SQLite pool
+  config.rs         – TOML configuration
+  db.rs             – bootstrap + helpers (Argon2, settings)
   error.rs          – AppError / IntoResponse
-  auth/             – Session-Cookies + lokaler Login
-  domain/           – Datenmodelle (FromRow)
+  auth/             – session cookies + local login
+  domain/           – data models (FromRow)
   ocpp/
-    wire.rs         – OCPP-JSON-Frame-Parser
-    hub.rs          – Registry aller aktiven Verbindungen
-    ocpp16.rs       – OCPP 1.6J (vollständig)
-    ocpp20.rs       – OCPP 2.0.1 (Bootstrap)
-    soap15.rs       – OCPP 1.5 SOAP-Endpunkt
-  web/              – axum-Router, Askama-Views
-templates/          – HTML-Templates (Askama)
-static/             – CSS + htmx-Shim (embedded via rust-embed)
-migrations/         – SQLite-Migrationen
+    wire.rs         – OCPP JSON frame parser
+    hub.rs          – registry of all active connections
+    ocpp16.rs       – OCPP 1.6J (complete)
+    ocpp20.rs       – OCPP 2.0.1 (bootstrap)
+    soap15.rs       – OCPP 1.5 SOAP endpoint
+  web/              – axum router, Askama views
+templates/          – HTML templates (Askama)
+static/             – CSS + htmx shim (embedded via rust-embed)
+migrations/         – SQLite migrations
 ```
 
-## Lizenz
+## License
 
 MIT

@@ -13,6 +13,7 @@ mod config;
 mod db;
 mod domain;
 mod error;
+mod i18n;
 mod ocpp;
 mod web;
 

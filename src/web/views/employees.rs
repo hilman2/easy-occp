@@ -23,7 +23,11 @@ struct ListTpl {
     employees: Vec<EmployeeRow>,
 }
 
-pub async fn list(State(state): State<AppState>, AdminUser(user): AdminUser) -> AppResult<Response> {
+pub async fn list(
+    State(state): State<AppState>,
+    AdminUser(user): AdminUser,
+    lang: crate::i18n::Lang,
+) -> AppResult<Response> {
     // Rollup pro Mitarbeiter: Chip-Anzahl + Lade-Summen.
     let rows: Vec<(i64, String, Option<String>, Option<String>, i64, String, i64, i64, i64)> =
         sqlx::query_as(
@@ -57,7 +61,7 @@ pub async fn list(State(state): State<AppState>, AdminUser(user): AdminUser) -> 
         .collect();
 
     Ok(render(&ListTpl {
-        layout: LayoutCtx::new("employees", Some(user)),
+        layout: LayoutCtx::new("employees", Some(user), lang),
         employees,
     })?
     .into_response())
@@ -73,11 +77,12 @@ pub struct CreateForm {
 pub async fn create(
     State(state): State<AppState>,
     AdminUser(_): AdminUser,
+    lang: crate::i18n::Lang,
     Form(form): Form<CreateForm>,
 ) -> AppResult<Response> {
     let name = form.display_name.trim();
     if name.is_empty() {
-        return Err(AppError::BadRequest("Name ist Pflicht.".into()));
+        return Err(AppError::BadRequest(lang.t("err.name_required").into()));
     }
     sqlx::query("INSERT INTO employees (display_name, email, department) VALUES (?1, ?2, ?3)")
         .bind(name)
@@ -109,6 +114,7 @@ pub async fn detail(
     State(state): State<AppState>,
     AdminUser(user): AdminUser,
     Path(id): Path<i64>,
+    lang: crate::i18n::Lang,
 ) -> AppResult<Response> {
     let emp: Employee = sqlx::query_as::<_, Employee>("SELECT * FROM employees WHERE id = ?1")
         .bind(id)
@@ -146,7 +152,7 @@ pub async fn detail(
         .collect();
 
     Ok(render(&DetailTpl {
-        layout: LayoutCtx::new("employees", Some(user)),
+        layout: LayoutCtx::new("employees", Some(user), lang),
         emp,
         chips,
         recent_tx,
@@ -166,11 +172,12 @@ pub async fn update(
     State(state): State<AppState>,
     AdminUser(_): AdminUser,
     Path(id): Path<i64>,
+    lang: crate::i18n::Lang,
     Form(form): Form<UpdateForm>,
 ) -> AppResult<Response> {
     let name = form.display_name.trim();
     if name.is_empty() {
-        return Err(AppError::BadRequest("Name ist Pflicht.".into()));
+        return Err(AppError::BadRequest(lang.t("err.name_required").into()));
     }
     let active = if form.active.as_deref() == Some("1") { 1 } else { 0 };
     sqlx::query(

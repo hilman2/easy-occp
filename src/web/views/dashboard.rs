@@ -8,6 +8,7 @@ use super::{render, LayoutCtx};
 use crate::auth::{AuthUser, MaybeAuth};
 use crate::domain::transaction::{fmt_kw, fmt_kwh, live_meter};
 use crate::domain::wallbox::Wallbox;
+use crate::i18n::Lang;
 use crate::{AppResult, AppState};
 
 #[derive(Template)]
@@ -24,6 +25,7 @@ struct DashTpl {
     top_employees: Vec<TopEmployee>,
     /// Remote-Stop ist AdminUser-only — der Button wird nur Admins gezeigt.
     can_stop: bool,
+    lang: Lang,
 }
 
 pub struct WallboxCard {
@@ -36,6 +38,7 @@ pub struct WallboxCard {
     pub active_tx: i64,
     pub connector_statuses: Vec<String>,
     pub auth_locked: bool,
+    pub lang: Lang,
 }
 
 impl WallboxCard {
@@ -66,11 +69,11 @@ impl WallboxCard {
     }
     pub fn state_label(&self) -> &'static str {
         match self.state() {
-            "charging" => "Lädt",
-            "ready" => "Bereit",
-            "offline" => "Offline",
-            "error" => "Fehler",
-            "warn" => "Nicht verfügbar",
+            "charging" => self.lang.t("state.charging"),
+            "ready" => self.lang.t("state.ready"),
+            "offline" => self.lang.t("state.offline"),
+            "error" => self.lang.t("state.error"),
+            "warn" => self.lang.t("state.warn"),
             _ => "—",
         }
     }
@@ -130,17 +133,20 @@ struct ActiveSessionsTpl {
     active_sessions: Vec<ActiveSession>,
     /// Remote-Stop ist AdminUser-only — der Button wird nur Admins gezeigt.
     can_stop: bool,
+    lang: Lang,
 }
 
 /// htmx-Fragment: wird vom Cockpit alle paar Sekunden nachgeladen.
 pub async fn active_sessions_fragment(
     State(state): State<AppState>,
     AuthUser(user): AuthUser,
+    lang: Lang,
 ) -> AppResult<Response> {
     let active_sessions = load_active_sessions(&state).await?;
     Ok(render(&ActiveSessionsTpl {
         active_sessions,
         can_stop: user.is_admin(),
+        lang,
     })?
     .into_response())
 }
@@ -151,7 +157,11 @@ pub struct TopEmployee {
     pub energy_kwh: i64,
 }
 
-pub async fn get(State(state): State<AppState>, MaybeAuth(user): MaybeAuth) -> AppResult<Response> {
+pub async fn get(
+    State(state): State<AppState>,
+    MaybeAuth(user): MaybeAuth,
+    lang: Lang,
+) -> AppResult<Response> {
     let Some(user) = user else {
         return Ok(Redirect::to("/login").into_response());
     };
@@ -191,6 +201,7 @@ pub async fn get(State(state): State<AppState>, MaybeAuth(user): MaybeAuth) -> A
                 .map(|(s,)| s.unwrap_or_default())
                 .collect(),
             auth_locked: wb.auth_basic_pass.is_some(),
+            lang,
         });
     }
 
@@ -244,7 +255,7 @@ pub async fn get(State(state): State<AppState>, MaybeAuth(user): MaybeAuth) -> A
 
     let can_stop = user.is_admin();
     let tpl = DashTpl {
-        layout: LayoutCtx::new("dashboard", Some(user)),
+        layout: LayoutCtx::new("dashboard", Some(user), lang),
         wallboxes_total,
         wallboxes_online,
         active_tx_count,
@@ -254,6 +265,7 @@ pub async fn get(State(state): State<AppState>, MaybeAuth(user): MaybeAuth) -> A
         active_sessions,
         top_employees,
         can_stop,
+        lang,
     };
     Ok(render(&tpl)?.into_response())
 }
