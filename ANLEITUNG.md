@@ -1,4 +1,4 @@
-# easy-occp v0.3.0 – Installation & Erststart (Windows)
+# easy-occp v0.3.1 – Installation & Erststart (Windows)
 
 🌐 [English](INSTALL.md) · [Deutsch](ANLEITUNG.md) · [Français](INSTALL.fr.md) · [Español](INSTALL.es.md)
 
@@ -171,4 +171,4 @@ Dienst/Aufgabe entfernen, Ordner löschen — es gibt keine Registry-Einträge u
 
 ---
 
-Version 0.3.0 · Lizenz: MIT
+Version 0.3.1 · Lizenz: MIT

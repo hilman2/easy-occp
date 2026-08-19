@@ -65,7 +65,9 @@ async fn main() -> Result<()> {
         .await
         .context("SQLite-Pool konnte nicht geöffnet werden")?;
 
-    sqlx::migrate!("./migrations")
+    let migrator = sqlx::migrate!("./migrations");
+    db::repair_line_ending_checksums(&db, &migrator).await?;
+    migrator
         .run(&db)
         .await
         .context("Migrationen fehlgeschlagen")?;

@@ -1,1 +1,8 @@
 * text=auto
+
+# Migrationen MÜSSEN LF behalten: sqlx::migrate! bildet eine SHA-384-Prüfsumme
+# über den Dateiinhalt und vergleicht sie mit der in _sqlx_migrations
+# gespeicherten. Ein CRLF-Checkout (Windows-Buildrunner) erzeugt sonst eine
+# andere Prüfsumme als ein LF-Checkout (Linux) -> "migration 1 was previously
+# applied but has been modified" beim Start gegen eine bestehende Datenbank.
+*.sql text eol=lf
